@@ -11,7 +11,7 @@ app.use(express.json());
  
 
 try {
-    const conStr = "mongodb+srv://admin:admin@razan.ihbzhkn.mongodb.net/PostITApp-S1-2526-FS2?appName=razan";
+    const conStr = "";
     await mongoose.connect(conStr);
     console.log(" Database Connected..");
 } catch (error) {

@@ -11,16 +11,16 @@ import Footer from './components/Footer.js';
 function App() {
   const email=useSelector((state)=>state.users.user.email);
   return (
-    <Container fluid>
+    <Container fluid className='appBG'>
       <Router>
         <Row>
           {email?<Header/>:null}
         </Row>
         <Row>
           <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/home" element={<Home />} />
         </Routes>
         </Row>
         <Row>
