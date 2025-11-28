@@ -15,7 +15,7 @@ function App() {
     <Container fluid className='appBG'>
       <Router>
         <Row>
-          {email?<Header/>:null}
+          <Header/>
         </Row>
         <Row>
           <Routes>
