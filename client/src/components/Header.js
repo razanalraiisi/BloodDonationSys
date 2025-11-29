@@ -30,13 +30,16 @@ const Header = () => {
                 <Collapse isOpen={isOpen} navbar>
                     <Nav className="ms-auto" navbar>
                         <NavItem className='navs'>
-                            <Link to=""><FaHome /></Link>
+                            <Link to="/"><FaHome /></Link>
                         </NavItem>
                         <NavItem className='navs'>
-                            <Link to=""><FaUserAlt /></Link>
+                            <Link to="/request">Request Blood</Link>
                         </NavItem>
                         <NavItem className='navs'>
-                            <Link to=""><FaSignOutAlt /></Link>
+                            <Link to="/user"><FaUserAlt /></Link>
+                        </NavItem>
+                        <NavItem className='navs'>
+                            <Link to="/login"><FaSignOutAlt /></Link>
                         </NavItem>
                     </Nav>
                 </Collapse>
