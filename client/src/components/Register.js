@@ -1,5 +1,5 @@
 import { Container, Row, Col, FormGroup, Label, Button } from 'reactstrap';
-import Logo from '../assets/logo.png';
+import Logo from '../assets/logoimg.jpg';
 import { UserRegisterSchemaValidation } from '../validations/UserRegisterSchemaValidation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';

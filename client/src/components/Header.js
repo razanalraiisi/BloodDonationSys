@@ -13,7 +13,7 @@ import {
     NavbarText,
 } from 'reactstrap';
 import { useState } from 'react';
-import Logo from '../assets/logo.png';
+import Logo from '../assets/logoimg.jpg';
 import { Link } from 'react-router-dom';
 import { FaHome, FaUserAlt,FaSignOutAlt   } from "react-icons/fa";
 
