@@ -1,4 +1,15 @@
 const Footer = () => {
+  return (
+    <div className="footer">
+      © 2024 BloodDonation Inc. • Muscat, Oman • +968 24875532 • Blood.Donation@BloodDonation.com
+    </div>
+  );
+};
+
+export default Footer;
+
+
+/*const Footer = () => {
     return (
       <div className="footer">
         <h3>Blood Donation System</h3>
@@ -17,5 +28,5 @@ const Footer = () => {
     );
   };
   
-  export default Footer;
+  export default Footer;*/
   
