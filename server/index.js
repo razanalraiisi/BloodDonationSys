@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import UserModel from "./models/UserModel.js";
 import RequestModel from "./models/RequestModel.js";
 import DonationCenterModel from "./models/DonationCenterModel.js";
+import DonationModel from "./models/DonationModel.js";
 
 const app = express();
 app.use(cors());
@@ -208,6 +209,66 @@ app.post("/center/add", async (req, res) => {
 app.get("/center/all", async (req, res) => {
     const centers = await DonationCenterModel.find();
     res.json(centers);
+});
+
+// ======================================================
+// DONATION — CREATE
+// ======================================================
+app.post("/donation/create", async (req, res) => {
+  try {
+    console.log("/donation/create payload:", req.body);
+    const {
+      donorEmail,
+      donorName,
+      bloodType,
+      donationType,
+      hospitalLocation,
+      feelingWell,
+      healthChanges,
+      medication,
+      chronicIllness,
+      traveledRecent,
+    } = req.body;
+
+    if (!donorEmail || !bloodType || !donationType || !feelingWell || !healthChanges || !medication || !chronicIllness) {
+      return res.status(400).json({ message: "Missing required fields", received: { donorEmail, bloodType, donationType, feelingWell, healthChanges, medication, chronicIllness } });
+    }
+
+    const donation = new DonationModel({
+      donorEmail,
+      donorName,
+      bloodType,
+      donationType,
+      hospitalLocation,
+      feelingWell,
+      healthChanges,
+      medication,
+      chronicIllness,
+      traveledRecent,
+    });
+
+    const saved = await donation.save();
+    console.log("Donation saved with id:", saved._id);
+    res.status(200).json({ message: "Donation submitted", donationId: saved._id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// ======================================================
+// DONATION — MINE (by donorEmail)
+// ======================================================
+app.post("/donation/mine", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email required" });
+    const mine = await DonationModel.find({ donorEmail: email }).sort({ createdAt: -1 });
+    res.status(200).json(mine);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 app.listen(5000, () => {
