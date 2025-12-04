@@ -15,7 +15,7 @@ import {
 import { useState } from 'react';
 import Logo from '../assets/logoimg.jpg';
 import { Link } from 'react-router-dom';
-import { FaHome, FaUserAlt,FaSignOutAlt   } from "react-icons/fa";
+import { FaHome, FaUserAlt, FaSignInAlt } from "react-icons/fa";
 
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +39,7 @@ const Header = () => {
                             <Link to="/user"><FaUserAlt /></Link>
                         </NavItem>
                         <NavItem className='navs'>
-                            <Link to="/login"><FaSignOutAlt /></Link>
+                            <Link to="/login"><FaSignInAlt /></Link>
                         </NavItem>
                     </Nav>
                 </Collapse>
