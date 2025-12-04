@@ -8,6 +8,10 @@ import Header from './components/Header.js';
 import { useSelector } from 'react-redux';
 import Footer from './components/Footer.js';
 import RequestBlood from './components/RequestBlood.js';
+import DonationCenter from './components/DonationCenter.js';
+import DonateBlood from './components/DonateBlood.js';
+import User from './components/User.js';
+import AboutUs from './components/AboutUs.js';
 
 function App() {
   const email=useSelector((state)=>state.users.user.email);
@@ -23,6 +27,10 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/request" element={<RequestBlood />} />
+          <Route path="/centers" element={<DonationCenter />} />
+          <Route path="/donate" element={<DonateBlood />} />
+          <Route path="/UserProfile" element={<User />} />
+          <Route path="/AboutUs" element={<AboutUs />} />
         </Routes>
         </Row>
         <Row>
