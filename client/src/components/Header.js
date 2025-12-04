@@ -12,13 +12,18 @@ import {
 } from 'reactstrap';
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FaHome, FaUserAlt, FaSignInAlt } from "react-icons/fa";
+import { Link, useNavigate } from 'react-router-dom';
+import { FaHome, FaUserAlt, FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../features/UserSlice';
 import Logo from '../assets/logo.jpeg';
 
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const user = useSelector((state)=>state.users.user);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const toggle = () => setIsOpen(!isOpen);
     const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
@@ -55,7 +60,18 @@ const Header = () => {
                     </NavItem>
 
                     <NavItem>
-                        <Link to="/login" style={styles.icon}><FaSignInAlt /></Link>
+                                                {!user ? (
+                                                        <Link to="/login" style={styles.icon}><FaSignInAlt /></Link>
+                                                ) : (
+                                                        <a
+                                                            href="#"
+                                                            style={styles.icon}
+                                                            onClick={(e)=>{e.preventDefault(); dispatch(logout()); navigate('/login');}}
+                                                            title="Logout"
+                                                        >
+                                                            <FaSignOutAlt />
+                                                        </a>
+                                                )}
                     </NavItem>
 
                     <NavItem>

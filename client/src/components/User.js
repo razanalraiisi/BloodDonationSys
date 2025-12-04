@@ -1,7 +1,8 @@
 import { useSelector } from 'react-redux';
 
 const User = () => {
-    const fullName = useSelector((state)=>state.users.user.fullName);
+    const user = useSelector((state)=>state.users.user);
+    const fullName = user?.fullName || user?.uname || "Guest";
     const defPic = "https://i.pinimg.com/736x/b6/e6/87/b6e687094f11e465e7d710a6b5754a4e.jpg";
 
     return (
