@@ -3,7 +3,7 @@ import Logo from '../assets/logo.jpeg';
 import { UserRegisterSchemaValidation } from '../validations/UserRegisterSchemaValidation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { addUser } from '../features/UserSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ const Register = () => {
   const isLoading = useSelector((state) => state.users.isLoading);
   const navigate = useNavigate();
 
-  // form fields
+  
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [bloodType, setBloodType] = useState('');
@@ -22,6 +22,14 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [medicalHistory, setMedicalHistory] = useState('');
   const [gender, setGender] = useState('');
+
+  
+  const getMaxDOB = () => {
+    const today = new Date();
+    today.setFullYear(today.getFullYear() - 17);
+    return today.toISOString().split("T")[0];
+  };
+  const maxDate = getMaxDOB();
 
   const {
     register,
@@ -40,15 +48,15 @@ const Register = () => {
       gender,
       medicalHistory
     };
+
     dispatch(addUser(data))
       .unwrap()
       .then(() => {
         navigate("/login", { state: { justRegistered: true } });
       })
-      .catch(() => {
-        // stay on page; errors shown via validation
-      });
+      .catch(() => {});
   };
+
   return (
     <div className="auth-page">
       <div className="auth-card">
@@ -56,6 +64,7 @@ const Register = () => {
           <img alt='Logo' height={36} src={Logo} />
         </div>
         <h2 className="auth-title">Sign Up</h2>
+
         <form onSubmit={handleSubmit(onSubmit)}>
           <FormGroup className='mb-3'>
             <Label className='auth-label'>Full Name</Label>
@@ -117,6 +126,7 @@ const Register = () => {
             <p className='auth-help' style={{ color: '#B3261E' }}>{errors.bloodType?.message}</p>
           </FormGroup>
 
+         
           <FormGroup className='mb-3'>
             <Label className='auth-label'>Date of Birth</Label>
             <input
@@ -125,6 +135,7 @@ const Register = () => {
               onChange={(e) => setDob(e.target.value)}
               type='date'
               className='auth-input'
+              max={maxDate}   
             />
             <p className='auth-help' style={{ color: '#B3261E' }}>{errors.dob?.message}</p>
           </FormGroup>
@@ -143,17 +154,31 @@ const Register = () => {
 
           <FormGroup className='mb-3'>
             <Label className='auth-label'>Gender</Label>
-            <select
-              {...register('gender')}
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              className='auth-input'
-            >
-              <option value=''>Select</option>
-              <option>Female</option>
-              <option>Male</option>
-              <option>Other</option>
-            </select>
+
+            <div style={{ display: 'flex', gap: '20px', marginTop: '5px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <input
+                  type="radio"
+                  {...register("gender")}
+                  value="Male"
+                  checked={gender === "Male"}
+                  onChange={(e) => setGender(e.target.value)}
+                />
+                Male
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <input
+                  type="radio"
+                  {...register("gender")}
+                  value="Female"
+                  checked={gender === "Female"}
+                  onChange={(e) => setGender(e.target.value)}
+                />
+                Female
+              </label>
+            </div>
+
             <p className='auth-help' style={{ color: '#B3261E' }}>{errors.gender?.message}</p>
           </FormGroup>
 
@@ -174,7 +199,9 @@ const Register = () => {
             </Button>
           </div>
 
-          <div className='auth-footer'>Already have an account? <a href='/login'>Sign In</a></div>
+          <div className='auth-footer'>
+            Already have an account? <a href='/login'>Sign In</a>
+          </div>
         </form>
       </div>
     </div>
