@@ -1,5 +1,4 @@
 import { Container, Row, Col, FormGroup, Label, Input, Button } from 'reactstrap';
-import Logo from '../assets/logo.png';
 import { UserSchemaValidation } from '../validations/userSchemaValidation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -9,6 +8,7 @@ import { getUser } from '../features/UserSlice';
 import {useDispatch,useSelector} from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { isAxiosError } from 'axios';
+import Logo from "../assets/logo.jpeg";
 
 const Login = () => {
 
@@ -50,7 +50,7 @@ const Login = () => {
                     <Col md='6' className='div-col'>
                         <form className='div-form'>
                             <div>
-                                <img alt='Logo' className='img-fluid rounded mx-auto d-block' src={Logo}></img>
+                                <img alt='Logo' className='img-fluid rounded mx-auto d-block' src={Logo} style={{width:"150px", height:"150px"}}></img>
                             </div>
                             <FormGroup>
                                 <Label>Email</Label>
