@@ -7,7 +7,7 @@ import {
     NavItem,
 } from 'reactstrap';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+    import { Link } from 'react-router-dom';
 import Logo from '../assets/logo.jpeg';
 
 const Header = () => {
@@ -27,19 +27,23 @@ const Header = () => {
                     <Nav className="ms-auto" navbar>
 
                         <NavItem className='navs'>
-                            <Link to="/signin" style={styles.link}>Sign in</Link>
+                            <Link to="/login" style={styles.link}>Sign In</Link>
                         </NavItem>
 
                         <NavItem className='navs'>
-                            <Link to="/signup" style={styles.link}>Sign up</Link>
+                            <Link to="/register" style={styles.link}>Sign Up</Link>
                         </NavItem>
 
                         <NavItem className='navs'>
-                            <Link to="/services" style={styles.link}>Services</Link>
+                            <Link to="/map" style={styles.link}>Donation Centers</Link>
                         </NavItem>
 
                         <NavItem className='navs'>
-                            <Link to="/about" style={styles.link}>About Us</Link>
+                            <Link to="/profile" style={styles.link}>Profile</Link>
+                        </NavItem>
+
+                        <NavItem className='navs'>
+                            <Link to="/admin" style={styles.link}>Admin</Link>
                         </NavItem>
 
                     </Nav>

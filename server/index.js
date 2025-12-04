@@ -1,113 +1,215 @@
-import express from 'express';
-import cors from 'cors';
-import mongoose from 'mongoose';
-import UserModel from './models/UserModel.js';
-import bcrypt from 'bcrypt';
-import PostModel from './models/Posts.js';
- 
+import express from "express";
+import cors from "cors";
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import UserModel from "./models/UserModel.js";
+import RequestModel from "./models/RequestModel.js";
+import DonationCenterModel from "./models/DonationCenterModel.js";
+
 const app = express();
 app.use(cors());
 app.use(express.json());
- 
 
+// ----------------------------------
+// 1) CONNECT TO MONGODB ATLAS
+// ----------------------------------
 try {
-    const conStr = "";
+    const conStr = "mongodb+srv://admin:admin@cluster0.luc5pu9.mongodb.net/?appName=Cluster0";
     await mongoose.connect(conStr);
-    console.log(" Database Connected..");
+    console.log("Database Connected...");
 } catch (error) {
-    console.log(" Database connection error: " + error);
+    console.log("Database connection error: " + error);
 }
- 
+
+// ----------------------------------
+// USER REGISTER
+// ----------------------------------
+app.post("/register", async (req, res) => {
+  try {
+    const { fullName, email, password, bloodType, dob, city, medicalHistory, gender } = req.body;
+
+    // Basic validation
+    if (!fullName || !email || !password || !bloodType || !dob || !city || !gender) {
+      return res.status(400).json({ message: "Please provide all required fields." });
+    }
+
+    const existing = await UserModel.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const newUser = new UserModel({
+      fullName,
+      email,
+      password: hashed,
+      bloodType,
+      dob,
+      city,
+      medicalHistory: medicalHistory || "",
+      gender
+    });
+
+    await newUser.save();
+    res.status(200).json({ message: "User registered successfully", user: newUser });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// ----------------------------------
+// USER LOGIN
+// ----------------------------------
+app.post("/login", async (req, res) => {
+  try {
+    const user = await UserModel.findOne({ email: req.body.email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const pwd_match = await bcrypt.compare(req.body.password, user.password);
+    if (!pwd_match) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    res.status(200).json({ user, message: "Login successful" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
+// ----------------------------------
+// GET USER PROFILE
+// ----------------------------------
+// PROFILE (post with email)
+app.post("/profile", async (req, res) => {
+  try {
+    const user = await UserModel.findOne({ email: req.body.email });
+
+    if (!user)
+      return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json(user);
+
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+// ----------------------------------
+// UPDATE PROFILE
+// ----------------------------------
+app.post("/updateProfile", async (req, res) => {
+  try {
+    const {
+      email,
+      fullName,
+      city,
+      bloodType,
+      medicalHistory,
+      dob,
+      gender
+    } = req.body;
+
+    await UserModel.updateOne(
+      { email },
+      { $set: { fullName, city, bloodType, medicalHistory, dob, gender } }
+    );
+
+    res.status(200).json({ message: "Profile updated" });
+
+  } catch (err) {
+    res.status(500).json({ message: "Error updating profile" });
+  }
+});
+
+
+// ======================================================
+// BLOOD REQUEST — CREATE
+// ======================================================
+app.post("/request/create", async (req, res) => {
+    try {
+        const newRequest = new RequestModel({
+            userEmail: req.body.userEmail,
+            patientName: req.body.patientName,
+            bloodType: req.body.bloodType,
+            hospital: req.body.hospital,
+            urgency: req.body.urgency,
+            neededDate: req.body.neededDate,
+        });
+
+        await newRequest.save();
+
+        res.json({ message: "Request created successfully" });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// ======================================================
+// USER — VIEW OWN REQUESTS
+// ======================================================
+app.post("/request/mine", async (req, res) => {
+    const { email } = req.body;
+
+    const myRequests = await RequestModel.find({ userEmail: email });
+    res.json(myRequests);
+});
+
+// ======================================================
+// ADMIN — VIEW ALL REQUESTS
+// ======================================================
+app.get("/request/all", async (req, res) => {
+    const allRequests = await RequestModel.find();
+    res.json(allRequests);
+});
+
+// ======================================================
+// ADMIN — APPROVE REQUEST
+// ======================================================
+app.post("/request/approve", async (req, res) => {
+    const { id } = req.body;
+
+    await RequestModel.findByIdAndUpdate(id, { status: "Approved" });
+
+    res.json({ message: "Request Approved" });
+});
+
+// ======================================================
+// ADMIN — REJECT REQUEST
+// ======================================================
+app.post("/request/reject", async (req, res) => {
+    const { id } = req.body;
+
+    await RequestModel.findByIdAndUpdate(id, { status: "Rejected" });
+
+    res.json({ message: "Request Rejected" });
+});
+
+// ======================================================
+// DONATION CENTERS (ADMIN CRUD)
+// ======================================================
+app.post("/center/add", async (req, res) => {
+    try {
+        const newCenter = new DonationCenterModel(req.body);
+        await newCenter.save();
+        res.json({ message: "Center added" });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+app.get("/center/all", async (req, res) => {
+    const centers = await DonationCenterModel.find();
+    res.json(centers);
+});
 
 app.listen(5000, () => {
     console.log("Server running on port 5000");
-});
- 
-
-app.post("/login", async (req, res) => {
-    try {
-        const user = await UserModel.findOne({ email: req.body.email });
- 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
- 
-        const pwd_match = await bcrypt.compare(req.body.password, user.password);
-        if (!pwd_match) {
-            return res.status(401).json({ message: "Invalid credentials" });
-        }
- 
-        res.status(200).json({ user, message: "Login successful" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
- 
-
-app.post("/register", async (req, res) => {
-    try {
-        const { uname, email, password, profilepic } = req.body;
- 
-        const existingUser = await UserModel.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: "User already exists" });
-        }
- 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new UserModel({
-            uname,
-            email,
-            password: hashedPassword,
-            profilepic,
-        });
- 
-        await newUser.save();
- 
-        res.status(200).json({ message: "User registered successfully" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
-
-app.post("/savePost", async (req, res) => {
-    try {
-        const { postMsg, email, lat, lng } = req.body;
-        const new_post = new PostModel({
-            postMsg:postMsg,
-            email,
-            lat: lat,
-            lng:lng,
-        });
-        await new_post.save();
- 
-        res.status(200).json({ message: "success" });
-        
- 
-        
-    } catch (error) {
-        res.send(error);
-        
-    }
-});
-
-app.get("/getPosts", async (req, res) => {
-    try {
-        const postsWithUser=await PostModel.aggregate([
-            {
-                $lookup:{
-                    from:"users",
-                    localField:"email",
-                    foreignField:"email",
-                    as:"user"
-                }
-            },
-            {$sort:{createdAt:-1}
-        }
-        ]);
-        res.json({posts:postsWithUser});
-    }catch (error) {
-        res.send(error);
-    }
 });

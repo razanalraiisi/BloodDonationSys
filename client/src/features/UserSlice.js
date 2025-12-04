@@ -1,13 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
- 
+
 
 export const getUser = createAsyncThunk(
   "users/getUser",
   async (udata, { rejectWithValue }) => {
     try {
       const response = await axios.post("http://localhost:5000/login", udata);
-      return response.data;
+      return response.data.user;
     } catch (error) {
       if (error.response && error.response.data && error.response.data.message) {
         return rejectWithValue(error.response.data.message);
@@ -16,16 +16,16 @@ export const getUser = createAsyncThunk(
     }
   }
 );
- 
+
 
 export const addUser = createAsyncThunk(
   "users/addUser",
   async (udata, { rejectWithValue }) => {
     try {
       const response = await axios.post("http://localhost:5000/register", udata);
-      return response.data.message;
+      return response.data;
     } catch (error) {
- 
+
       if (error.response && error.response.data && error.response.data.message) {
         return rejectWithValue(error.response.data.message);
       }
@@ -33,7 +33,7 @@ export const addUser = createAsyncThunk(
     }
   }
 );
- 
+
 const initialState = {
   user: {},
   message: "",
@@ -41,7 +41,7 @@ const initialState = {
   isSuccess: false,
   isError: false,
 };
- 
+
 export const UserSlice = createSlice({
   name: "users",
   initialState,
@@ -65,8 +65,8 @@ export const UserSlice = createSlice({
         state.isError = true;
         state.message = action.payload || "Registration failed.";
       })
- 
-     
+
+
       .addCase(getUser.pending, (state) => {
         state.isLoading = true;
         state.isError = false;
@@ -76,9 +76,10 @@ export const UserSlice = createSlice({
       .addCase(getUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.message = action.payload.message;
-        state.user = action.payload.user;
+        state.message = "Login successful";
+        state.user = action.payload;
       })
+
       .addCase(getUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
@@ -86,6 +87,5 @@ export const UserSlice = createSlice({
       });
   },
 });
- 
+
 export default UserSlice.reducer;
- 

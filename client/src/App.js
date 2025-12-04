@@ -9,6 +9,8 @@ import { useSelector } from 'react-redux';
 import Footer from './components/Footer.js';
 import DonationCenter from './components/DonationCenter.js';
 import Admin from './components/Admin';
+import Profile from "./components/Profile";
+
 
 function App() {
   const email=useSelector((state)=>state.users.user.email);
@@ -25,6 +27,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/map" element={<DonationCenter />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/profile" element={<Profile />} />
+
         </Routes>
         </Row>
         <Row>
