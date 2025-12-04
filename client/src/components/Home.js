@@ -30,7 +30,7 @@ const Home=()=>{
                 <Col className="mt-5 gx-4 gy-4 stats-row text-center justify-content-center">
                 
                 <h3  style={{ color:'#B3261E'}}> Blood donation is a simple act of kindness that can save countless lives.</h3><br/>
-                <Button style={{backgroundColor:'#f7c7c7', color:'#B3261E', borderRadius: '15px'}} href="/register">Request Blood</Button> <Button style={{backgroundColor:'#f7c7c7', color:'#B3261E', borderRadius: '15px'}} href="/register">Donate Blood</Button>
+                <Button style={{backgroundColor:'#f7c7c7', color:'#B3261E', borderRadius: '15px'}} href="/request">Request Blood</Button> <Button style={{backgroundColor:'#f7c7c7', color:'#B3261E', borderRadius: '15px'}} href="/register">Donate Blood</Button>
                     
                 </Col>
             </Row>

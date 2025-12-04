@@ -8,6 +8,7 @@ import {
 } from 'reactstrap';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FaHome, FaUserAlt, FaSignInAlt } from "react-icons/fa";
 import Logo from '../assets/logo.jpeg';
 
 const Header = () => {
@@ -27,15 +28,18 @@ const Header = () => {
                     <Nav className="ms-auto" navbar>
 
                         <NavItem className='navs'>
-                            <Link to="/signin" style={styles.link}>Sign in</Link>
+                            <Link to="/"><FaHome /></Link>
                         </NavItem>
 
                         <NavItem className='navs'>
-                            <Link to="/signup" style={styles.link}>Sign up</Link>
+                            <Link to="/request">Request Blood</Link>
                         </NavItem>
 
                         <NavItem className='navs'>
-                            <Link to="/services" style={styles.link}>Services</Link>
+                            <Link to="/user"><FaUserAlt /></Link>
+                        </NavItem>
+                        <NavItem className='navs'>
+                            <Link to="/login"><FaSignInAlt /></Link>
                         </NavItem>
 
                         <NavItem className='navs'>
