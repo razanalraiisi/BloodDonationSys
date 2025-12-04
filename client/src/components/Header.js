@@ -28,6 +28,7 @@ const Header = () => {
             <NavbarBrand>
                 <Link to="/">
                     <img src={Logo} width="75px" height="75px" alt="logo" />
+                    <h6 style={{ display: 'inline', color: '#B3261E', marginLeft: '10px', fontWeight: '700' }}>BloodLink</h6>
                 </Link>
             </NavbarBrand>
 
@@ -36,7 +37,7 @@ const Header = () => {
             <Collapse isOpen={isOpen} navbar>
                 <Nav className="ms-auto align-items-center" navbar>
 
-                    {/* Services Dropdown */}
+                    
                     <Dropdown nav isOpen={dropdownOpen} toggle={toggleDropdown}>
                         <DropdownToggle nav caret style={styles.link}>
                             Services

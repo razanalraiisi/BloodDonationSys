@@ -1,7 +1,4 @@
 import { Container,Row, Col,UncontrolledAccordion,AccordionItem,AccordionHeader,AccordionBody, Card,CardBody, Button} from "reactstrap";
-import User from "./User";
-import SharePost from "./SharePost";
-import Posts from "./Posts";
 import { useSelector } from 'react-redux';
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -12,13 +9,14 @@ import bloodDonorCartoon from "../assets/bloodDonorCartoon.jpg";
 
 
 const Home=()=>{
-    const email=useSelector((state)=>state.users.user.email);
+    //remove the comment when the login is working for now keep it as it is 
+    /*const email=useSelector((state)=>state.users.user.email);
     const navigate=useNavigate();
     
     useEffect(()=>{
         if(!email)
             navigate("/");
-    },[email]);
+    },[email]);*/
     
     return(
         <Container fluid>

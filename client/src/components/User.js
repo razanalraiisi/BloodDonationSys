@@ -6,7 +6,7 @@ const User=()=>{
     const defPic="https://icon-library.com/images/profiles-icon/profiles-icon-0.jpg";
     return(
         <>
-            <img src={profilepic?profilepic:defPic} className='profilepic'/>
+            <img src={profilepic?profilepic:defPic} style={{width:"150px", height:"150px",borderRadius:"50%"}}/>
             <h1>{uname}</h1>
         </>
     )
