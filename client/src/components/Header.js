@@ -5,7 +5,12 @@ import {
     NavbarBrand,
     Nav,
     NavItem,
+    Dropdown,
+    DropdownToggle,
+    DropdownMenu,
+    DropdownItem
 } from 'reactstrap';
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaHome, FaUserAlt, FaSignInAlt } from "react-icons/fa";
@@ -13,43 +18,52 @@ import Logo from '../assets/logo.jpeg';
 
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+
     const toggle = () => setIsOpen(!isOpen);
+    const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
     return (
-        <>
-            <Navbar className='navigation' light expand='md' style={styles.navbar}>
-                <NavbarBrand>
-                    <img src={Logo} width="150px" height="75px" alt="logo" />
-                </NavbarBrand>
+        <Navbar className="navigation" light expand="md" style={styles.navbar}>
+            <NavbarBrand>
+                <Link to="/">
+                    <img src={Logo} width="75px" height="75px" alt="logo" />
+                </Link>
+            </NavbarBrand>
 
-                <NavbarToggler onClick={toggle} />
+            <NavbarToggler onClick={toggle} />
 
-                <Collapse isOpen={isOpen} navbar>
-                    <Nav className="ms-auto" navbar>
+            <Collapse isOpen={isOpen} navbar>
+                <Nav className="ms-auto align-items-center" navbar>
 
-                        <NavItem className='navs'>
-                            <Link to="/"><FaHome /></Link>
-                        </NavItem>
+                    {/* Services Dropdown */}
+                    <Dropdown nav isOpen={dropdownOpen} toggle={toggleDropdown}>
+                        <DropdownToggle nav caret style={styles.link}>
+                            Services
+                        </DropdownToggle>
 
-                        <NavItem className='navs'>
-                            <Link to="/request">Request Blood</Link>
-                        </NavItem>
+                        <DropdownMenu>
+                            <DropdownItem style={styles.link} tag={Link} to="/request">Request Blood</DropdownItem>
+                            <DropdownItem style={styles.link} tag={Link} to="/donate">Donate Blood</DropdownItem>
+                            <DropdownItem style={styles.link}tag={Link} to="/centers">Donation Centers</DropdownItem>
+                        </DropdownMenu>
+                    </Dropdown>
 
-                        <NavItem className='navs'>
-                            <Link to="/user"><FaUserAlt /></Link>
-                        </NavItem>
-                        <NavItem className='navs'>
-                            <Link to="/login"><FaSignInAlt /></Link>
-                        </NavItem>
+                    <NavItem>
+                        <Link to="/AboutUs" style={styles.link}>About Us</Link>
+                    </NavItem>
 
-                        <NavItem className='navs'>
-                            <Link to="/about" style={styles.link}>About Us</Link>
-                        </NavItem>
+                    <NavItem>
+                        <Link to="/login" style={styles.icon}><FaSignInAlt /></Link>
+                    </NavItem>
 
-                    </Nav>
-                </Collapse>
-            </Navbar>
-        </>
+                    <NavItem>
+                        <Link to="/UserProfile" style={styles.icon}><FaUserAlt /></Link>
+                    </NavItem>
+
+                </Nav>
+            </Collapse>
+        </Navbar>
     );
 };
 
@@ -63,9 +77,15 @@ const styles = {
     },
     link: {
         textDecoration: "none",
-        marginRight: "20px",
+        marginRight: "25px",
         color: "#B3261E",
         fontWeight: "600",
         fontSize: "16px",
+        cursor: "pointer",
+    },
+    icon: {
+        color: "#B3261E",
+        fontSize: "20px",
+        marginLeft: "15px",
     }
 };
