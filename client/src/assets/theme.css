@@ -1,21 +1,21 @@
-/* Global theme variables */
+
 :root {
-  --bg: #FDF4F4;          /* page background */
-  --primary: #B3261E;     /* red button + headings */
-  --light: #F9DEDC;       /* light button background */
-  --shade: #E19E9C;       /* slightly darker shade */
-  --card-bg: #ffffff;     /* form card background */
-  --text: #1f1f1f;        /* primary text */
-  --muted: #6b6b6b;       /* helper text */
-  --border: #f0d6d6;      /* subtle borders */
+  --bg: #FDF4F4;         
+  --primary: #B3261E;     
+  --light: #F9DEDC;       
+  --shade: #E19E9C;      
+  --card-bg: #ffffff;     
+  --text: #1f1f1f;        
+  --muted: #6b6b6b;       
+  --border: #f0d6d6;      
 }
 
-/* Page background */
+
 body {
   background-color: var(--bg);
 }
 
-/***** Auth Layout *****/
+
 .auth-page {
   min-height: 100vh;
   display: flex;

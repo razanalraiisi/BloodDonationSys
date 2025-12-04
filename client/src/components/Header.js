@@ -28,8 +28,8 @@ const Header = () => {
             <NavbarBrand>
                 <Link to="/">
                     <img src={Logo} width="75px" height="75px" alt="logo" />
-                    <h6 style={{ display: 'inline', color: '#B3261E', marginLeft: '10px', fontWeight: '700' }}>BloodLink</h6>
                 </Link>
+                <h6 style={{ display: 'inline', color: '#B3261E', marginLeft: '10px', fontWeight: '700' }}>BloodLink</h6>
             </NavbarBrand>
 
             <NavbarToggler onClick={toggle} />

@@ -1,5 +1,4 @@
 import { Container, Row, Col, FormGroup, Label, Button } from 'reactstrap';
-import Logo from '../assets/logo.png';
 import { UserRegisterSchemaValidation } from '../validations/UserRegisterSchemaValidation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -7,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { addUser } from '../features/UserSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import Logo from "../assets/logo.jpeg";
  
 const Register = () => {
  
@@ -52,7 +52,7 @@ const Register = () => {
                     <Col md='6' className='div-col'>
                         <form className='div-form'>
                             <div>
-                                <img alt='Logo' className='img-fluid rounded mx-auto d-block' src={Logo}></img>
+                                <img alt='Logo' className='img-fluid rounded mx-auto d-block' src={Logo} style={{width:"150px", height:"150px"}}></img>
                             </div>
                             <FormGroup>
                                 <Label>UserName:</Label>
