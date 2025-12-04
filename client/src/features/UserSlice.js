@@ -23,7 +23,8 @@ export const addUser = createAsyncThunk(
   async (udata, { rejectWithValue }) => {
     try {
       const response = await axios.post("http://localhost:5000/register", udata);
-      return response.data.message;
+  
+      return { ok: true };
     } catch (error) {
  
       if (error.response && error.response.data && error.response.data.message) {
@@ -35,7 +36,7 @@ export const addUser = createAsyncThunk(
 );
  
 const initialState = {
-  user: {},
+  user: null,
   message: "",
   isLoading: false,
   isSuccess: false,
@@ -58,12 +59,13 @@ export const UserSlice = createSlice({
       .addCase(addUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.message = action.payload;
+        state.message = "Registration successful!";
       })
       .addCase(addUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
-        state.message = action.payload || "Registration failed.";
+        // Do not echo server message; keep client-controlled text
+        state.message = "";
       })
  
      
