@@ -1,211 +1,120 @@
-import { FormGroup, Label, Button } from 'reactstrap';
-import Logo from '../assets/logo.jpeg';
+import { Container, Row, Col, FormGroup, Label, Button } from 'reactstrap';
 import { UserRegisterSchemaValidation } from '../validations/UserRegisterSchemaValidation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { addUser } from '../features/UserSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-
+import Logo from "../assets/logo.jpeg";
+ 
 const Register = () => {
-  const dispatch = useDispatch();
-  const isLoading = useSelector((state) => state.users.isLoading);
-  const navigate = useNavigate();
+ 
 
-  
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [bloodType, setBloodType] = useState('');
-  const [dob, setDob] = useState('');
-  const [city, setCity] = useState('');
-  const [password, setPassword] = useState('');
-  const [medicalHistory, setMedicalHistory] = useState('');
-  const [gender, setGender] = useState('');
+    let [email, setEmail] = useState('');
+    let [password, setPassword] = useState('');
+    let [uname, setuname] = useState('');
+    let [pic, setPic] = useState('');
+    const dispatch = useDispatch();
+    const message = useSelector((state) => state.users.message);
+    const navigate = useNavigate();
+ 
 
-  
-  const getMaxDOB = () => {
-    const today = new Date();
-    today.setFullYear(today.getFullYear() - 17);
-    return today.toISOString().split("T")[0];
-  };
-  const maxDate = getMaxDOB();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({ resolver: yupResolver(UserRegisterSchemaValidation) });
-
-  const onSubmit = () => {
-    const data = {
-      fullName,
-      email,
-      password,
-      bloodType,
-      dob,
-      city,
-      gender,
-      medicalHistory
+    const {
+        register,
+        handleSubmit: submitForm,
+        formState: { errors }
+    } = useForm({ resolver: yupResolver(UserRegisterSchemaValidation) });
+ 
+    const validate = () => {
+        const data = {
+            uname: uname,
+            email: email,
+            password: password,
+            profilepic: pic
+        };
+        dispatch(addUser(data));
     };
-
-    dispatch(addUser(data))
-      .unwrap()
-      .then(() => {
-        navigate("/login", { state: { justRegistered: true } });
-      })
-      .catch(() => {});
-  };
-
-  return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-header">
-          <img alt='Logo' height={36} src={Logo} />
+ 
+    useEffect(() => {
+        if (message === "User already exists") {
+            alert("User already exists");
+        } else if (message === "User registered successfully") {
+            alert("Registration successful!");
+            navigate("/");
+        }
+    }, [message, navigate]);
+ 
+    return (
+        <div>
+            <Container fluid>
+                <Row className='div-row'>
+                    <Col md='6' className='div-col'>
+                        <form className='div-form'>
+                            <div>
+                                <img alt='Logo' className='img-fluid rounded mx-auto d-block' src={Logo} style={{width:"150px", height:"150px"}}></img>
+                            </div>
+                            <FormGroup>
+                                <Label>UserName:</Label>
+                                <input
+                                    {...register('uname', {
+                                        value: uname,
+                                        onChange: (e) => setuname(e.target.value)
+                                    })}
+                                    placeholder='Please Enter your username here...'
+                                    type='text' className='form-control' />
+                                <p style={{ color: 'red' }}>{errors.uname?.message}</p>
+                            </FormGroup>
+                            <FormGroup>
+                                <Label>Profile Picture:</Label>
+                                <input
+                                    {...register('pic', {
+                                        value: pic,
+                                        onChange: (e) => setPic(e.target.value)
+                                    })}
+                                    placeholder='Please Enter your Profile picture here...'
+                                    type='text' className='form-control' />
+                                <p style={{ color: 'red' }}>{errors.pic?.message}</p>
+                            </FormGroup>
+                            <FormGroup>
+                                <Label>Email:</Label>
+                                <input
+                                    {...register('email', {
+                                        value: email,
+                                        onChange: (e) => setEmail(e.target.value)
+                                    })}
+                                    placeholder='Please Enter your Email here...'
+                                    type='email' className='form-control' />
+                                <p style={{ color: 'red' }}>{errors.email?.message}</p>
+                            </FormGroup>
+                            <FormGroup>
+                                <Label>Password:</Label>
+                                <input
+                                    {...register('password', {
+                                        value: password,
+                                        onChange: (e) => setPassword(e.target.value)
+                                    })}
+                                    placeholder='Please Enter your Password here...'
+                                    type='password' className='form-control' />
+                                <p style={{ color: 'red' }}>{errors.password?.message}</p>
+                            </FormGroup>
+                            <FormGroup>
+                                <Button
+                                    onClick={submitForm(validate)}
+                                    className='form-control'
+                                    color='dark'>
+                                    Sign In
+                                </Button>
+                            </FormGroup>
+                            <FormGroup>
+                                <p>{message}</p>
+                            </FormGroup>
+                        </form>
+                    </Col>
+                </Row>
+            </Container>
         </div>
-        <h2 className="auth-title">Sign Up</h2>
-
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FormGroup className='mb-3'>
-            <Label className='auth-label'>Full Name</Label>
-            <input
-              {...register('fullName')}
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder='Full Name'
-              type='text'
-              className='auth-input'
-            />
-            <p className='auth-help' style={{ color: '#B3261E' }}>{errors.fullName?.message}</p>
-          </FormGroup>
-
-          <FormGroup className='mb-3'>
-            <Label className='auth-label'>Email</Label>
-            <input
-              {...register('email')}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder='example@mail.com'
-              type='email'
-              className='auth-input'
-            />
-            <p className='auth-help' style={{ color: '#B3261E' }}>{errors.email?.message}</p>
-          </FormGroup>
-
-          <FormGroup className='mb-3'>
-            <Label className='auth-label'>Password</Label>
-            <input
-              {...register('password')}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder='Enter your password'
-              type='password'
-              className='auth-input'
-            />
-            <p className='auth-help' style={{ color: '#B3261E' }}>{errors.password?.message}</p>
-          </FormGroup>
-
-          <FormGroup className='mb-3'>
-            <Label className='auth-label'>Blood Type</Label>
-            <select
-              {...register('bloodType')}
-              value={bloodType}
-              onChange={(e) => setBloodType(e.target.value)}
-              className='auth-input'
-            >
-              <option value=''>Select</option>
-              <option>O+</option>
-              <option>O-</option>
-              <option>A+</option>
-              <option>A-</option>
-              <option>B+</option>
-              <option>B-</option>
-              <option>AB+</option>
-              <option>AB-</option>
-            </select>
-            <p className='auth-help' style={{ color: '#B3261E' }}>{errors.bloodType?.message}</p>
-          </FormGroup>
-
-         
-          <FormGroup className='mb-3'>
-            <Label className='auth-label'>Date of Birth</Label>
-            <input
-              {...register('dob')}
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-              type='date'
-              className='auth-input'
-              max={maxDate}   
-            />
-            <p className='auth-help' style={{ color: '#B3261E' }}>{errors.dob?.message}</p>
-          </FormGroup>
-
-          <FormGroup className='mb-3'>
-            <Label className='auth-label'>City</Label>
-            <input
-              {...register('city')}
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              type='text'
-              className='auth-input'
-            />
-            <p className='auth-help' style={{ color: '#B3261E' }}>{errors.city?.message}</p>
-          </FormGroup>
-
-          <FormGroup className='mb-3'>
-            <Label className='auth-label'>Gender</Label>
-
-            <div style={{ display: 'flex', gap: '20px', marginTop: '5px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <input
-                  type="radio"
-                  {...register("gender")}
-                  value="Male"
-                  checked={gender === "Male"}
-                  onChange={(e) => setGender(e.target.value)}
-                />
-                Male
-              </label>
-
-              <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <input
-                  type="radio"
-                  {...register("gender")}
-                  value="Female"
-                  checked={gender === "Female"}
-                  onChange={(e) => setGender(e.target.value)}
-                />
-                Female
-              </label>
-            </div>
-
-            <p className='auth-help' style={{ color: '#B3261E' }}>{errors.gender?.message}</p>
-          </FormGroup>
-
-          <FormGroup className='mb-3'>
-            <Label className='auth-label'>Medical History (optional)</Label>
-            <textarea
-              {...register('medicalHistory')}
-              value={medicalHistory}
-              onChange={(e) => setMedicalHistory(e.target.value)}
-              className='auth-input'
-              placeholder='Any relevant medical history (optional)'
-            ></textarea>
-          </FormGroup>
-
-          <div className='auth-actions'>
-            <Button type='submit' className='auth-btn-primary w-100' disabled={isLoading}>
-              {isLoading ? 'Signing Up...' : 'Sign Up'}
-            </Button>
-          </div>
-
-          <div className='auth-footer'>
-            Already have an account? <a href='/login'>Sign In</a>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
+    );
+}
+ 
 export default Register;
