@@ -12,6 +12,7 @@ import DonateBlood from './components/DonateBlood.js';
 import User from './components/User.js';
 import AboutUs from './components/AboutUs.js';
 import LandingPage from './components/LandingPage.js';
+import Admin from './components/Admin.js';
 
 function AppContent() {
   const location = useLocation();
@@ -36,6 +37,7 @@ function AppContent() {
           <Route path="/donate" element={<DonateBlood />} />
           <Route path="/UserProfile" element={<User />} />
           <Route path="/AboutUs" element={<AboutUs />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </Row>
 
