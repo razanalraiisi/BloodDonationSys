@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const dispatch = useDispatch();
-  const message = useSelector((state) => state.users.message);
+  const isLoading = useSelector((state) => state.users.isLoading);
   const navigate = useNavigate();
 
   // form fields
@@ -41,17 +41,17 @@ const Register = () => {
       medicalHistory
     };
 
-    dispatch(addUser(data));
+    dispatch(addUser(data))
+      .unwrap()
+      .then(() => {
+        navigate("/login", { state: { justRegistered: true } });
+      })
+      .catch(() => {
+        // Keep navigation, or stay put – here we stay and rely on form errors
+      });
   };
 
-  useEffect(() => {
-    if (message === "User already exists") {
-      alert("User already exists");
-    } else if (message === "User registered successfully") {
-      alert("Registration successful!");
-      navigate("/login");
-    }
-  }, [message, navigate]);
+  // Messaging handled via navigate state -> Login shows banner
 
   return (
     <div>
@@ -175,8 +175,8 @@ const Register = () => {
               </FormGroup>
 
               <FormGroup>
-                <Button type='submit' className='form-control' color='dark'>
-                  Sign Up
+                <Button type='submit' className='form-control' color='dark' disabled={isLoading}>
+                  {isLoading ? 'Signing Up...' : 'Sign Up'}
                 </Button>
               </FormGroup>
 
