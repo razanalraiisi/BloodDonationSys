@@ -7,12 +7,7 @@ import { Container, Row } from 'reactstrap';
 import Header from './components/Header.js';
 import { useSelector } from 'react-redux';
 import Footer from './components/Footer.js';
-<<<<<<< HEAD
-import DonationCenter from './components/DonationCenter.js';
-import Admin from './components/Admin';
-=======
 import RequestBlood from './components/RequestBlood.js';
->>>>>>> a012894 (Added theme.css)
 
 function App() {
   const email=useSelector((state)=>state.users.user.email);
@@ -27,12 +22,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-<<<<<<< HEAD
-          <Route path="/map" element={<DonationCenter />} />
-          <Route path="/admin" element={<Admin />} />
-=======
           <Route path="/request" element={<RequestBlood />} />
->>>>>>> a012894 (Added theme.css)
         </Routes>
         </Row>
         <Row>
