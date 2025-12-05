@@ -23,6 +23,7 @@ const Header = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const user = useSelector((state)=>state.users.user);
     const [profileUrl, setProfileUrl] = useState('');
+    const defPic = "https://i.pinimg.com/736x/b6/e6/87/b6e687094f11e465e7d710a6b5754a4e.jpg";
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -33,6 +34,8 @@ const Header = () => {
         try {
             const savedPic = localStorage.getItem('profile.profileUrl');
             setProfileUrl(savedPic || '');
+            if (savedPic) setProfileUrl(savedPic);
+            else setProfileUrl('');
         } catch {}
         const onProfileUpdated = () => {
             try {
@@ -48,11 +51,13 @@ const Header = () => {
 
     return (
         <Navbar className="navigation" light expand="md" style={styles.navbar}>
-            <NavbarBrand>
-                <Link to="/">
-                    <img src={Logo} width="75px" height="75px" alt="logo" />
-                </Link>
-                <h6 style={{ display: 'inline', color: '#B3261E', marginLeft: '10px', fontWeight: '700' }}>BloodLink</h6>
+            
+            {/* FIX: NavbarBrand becomes a Link directly */}
+            <NavbarBrand tag={Link} to="/" style={{ display: "flex", alignItems: "center" }}>
+                <img src={Logo} width="75px" height="75px" alt="logo" />
+                <h6 style={{ color: '#B3261E', marginLeft: '10px', fontWeight: '700' }}>
+                    BloodLink
+                </h6>
             </NavbarBrand>
 
             <NavbarToggler onClick={toggle} />
@@ -60,7 +65,7 @@ const Header = () => {
             <Collapse isOpen={isOpen} navbar>
                 <Nav className="ms-auto align-items-center" navbar>
 
-                    
+                    {/* SERVICES DROPDOWN */}
                     <Dropdown nav isOpen={dropdownOpen} toggle={toggleDropdown}>
                         <DropdownToggle nav caret style={styles.link}>
                             Services
@@ -74,8 +79,20 @@ const Header = () => {
                         </DropdownMenu>
                     </Dropdown>
 
+                    {/* ABOUT PAGE */}
                     <NavItem>
                         <Link to="/AboutUs" style={styles.link}>About Us</Link>
+                    </NavItem>
+
+                    {/* LOGIN / LOGOUT BUTTON */}
+                    <NavItem>
+                        <Link to="/UserProfile" style={{ ...styles.icon, display: 'flex', alignItems: 'center' }}>
+                            {profileUrl ? (
+                                <img src={profileUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 6px rgba(0,0,0,0.15)', border: '2px solid #fff' }} />
+                            ) : (
+                                <FaUserAlt />
+                            )}
+                        </Link>
                     </NavItem>
 
                     <NavItem>
@@ -129,5 +146,13 @@ const styles = {
         color: "#B3261E",
         fontSize: "20px",
         marginLeft: "15px",
+    },
+    iconButton: {
+        background: "none",
+        border: "none",
+        color: "#B3261E",
+        fontSize: "20px",
+        marginLeft: "15px",
+        cursor: "pointer"
     }
 };

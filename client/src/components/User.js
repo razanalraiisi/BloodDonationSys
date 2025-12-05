@@ -17,6 +17,52 @@ const User = () => {
     const [dobError, setDobError] = useState('');
     const [editPhone, setEditPhone] = useState('');
     const [healthHistory, setHealthHistory] = useState('');
+    // Next eligible donation logic based on last donation type
+    const getIntervalDays = (type) => {
+        switch (type) {
+            case 'Whole Blood':
+                return 56; // 8 weeks
+            case 'Platelets':
+                return 7;
+            case 'Plasma':
+                return 28;
+            case 'Double Red Cells':
+                return 112; // 16 weeks
+            default:
+                return 56; // sensible default
+        }
+    };
+    const computeNextEligible = () => {
+        if (!donations || donations.length === 0) return { date: null, daysLeft: null, type: null };
+        const last = donations[0]; 
+        const lastDate = new Date(last.createdAt);
+        const days = getIntervalDays(last.donationType);
+        const next = new Date(lastDate);
+        next.setDate(next.getDate() + days);
+        const today = new Date();
+        const msDiff = next.getTime() - today.getTime();
+        const daysLeft = Math.max(0, Math.ceil(msDiff / (1000*60*60*24)));
+        return { date: next, daysLeft, type: last.donationType };
+    };
+    const [requests, setRequests] = useState([]);
+    const [reqType, setReqType] = useState('');
+    const [reqLocation, setReqLocation] = useState('');
+    const [reqUnits, setReqUnits] = useState('');
+    const [reqPhone, setReqPhone] = useState('');
+    const fullName = user?.fullName || user?.uname || "Guest";
+    const bloodType = user?.bloodType || 'Unknown';
+    const dobRaw = user?.dob || user?.dateOfBirth || '';
+    const [editBloodType, setEditBloodType] = useState(bloodType);
+    const [editDob, setEditDob] = useState(dobRaw ? new Date(dobRaw).toISOString().slice(0,10) : '');
+    const [dobError, setDobError] = useState('');
+    const [editPhone, setEditPhone] = useState('');
+    const defPic = "https://i.pinimg.com/736x/b6/e6/87/b6e687094f11e465e7d710a6b5754a4e.jpg";
+    const [displayName, setDisplayName] = useState(fullName);
+    const [profileUrl, setProfileUrl] = useState('');
+    const [healthHistory, setHealthHistory] = useState('');
+    const [donationSort, setDonationSort] = useState(() => {
+        try { return localStorage.getItem('profile.donationSort') || 'date_desc'; } catch { return 'date_desc'; }
+    });
 
     // fetch donations
     useEffect(() => {
@@ -26,6 +72,7 @@ const User = () => {
             .then(res => setDonations(res.data || []))
             .catch(() => setDonations([]));
         // hydrate local edits
+        // hydrate local edits if present
         try {
             const savedName = localStorage.getItem('profile.displayName');
             const savedPic = localStorage.getItem('profile.profileUrl');
@@ -71,6 +118,10 @@ const User = () => {
             {/* Top: left profile + right donations */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'stretch' }}>
                 {/* Left column: profile and editable fields */}
+        <div style={{ padding: '24px 16px', maxWidth: 1100, margin: '0 auto' }}>
+            <h2 className='auth-title' style={{ textAlign: 'center', marginBottom: 24 }}>User Profile</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'stretch' }}>
+                {/* Left: Profile card */}
                 <div className='auth-card' style={{ padding: 20, boxShadow: '0 6px 20px rgba(0,0,0,0.08)', borderRadius: 14 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14, marginLeft: 6 }}>
                         <div style={{ position: 'relative', width: 104, height: 104 }}>
@@ -78,6 +129,21 @@ const User = () => {
                             <label
                                 title='Upload Photo'
                                 style={{ position: 'absolute', right: -6, bottom: -6, width: 28, height: 28, borderRadius: '50%', background: '#e4002b', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
+                                style={{
+                                    position: 'absolute',
+                                    right: -6,
+                                    bottom: -6,
+                                    width: 28,
+                                    height: 28,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#e4002b',
+                                    border: '2px solid #fff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                                }}
                             >
                                 <span style={{ fontSize: 18, lineHeight: 1, color: '#fff' }}>+</span>
                                 <input
@@ -236,6 +302,217 @@ const User = () => {
                     <div style={{ marginTop: 10 }}>
                         <div className='auth-title' style={{ fontSize: 15, marginBottom: 8 }}>History</div>
                         <p className='auth-label'>No requests yet.</p>
+                                    }}
+                                />
+                            </label>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <div className='auth-label' style={{ fontWeight: 700 }}>
+                                <input
+                                    className='auth-input'
+                                    value={displayName}
+                                    onChange={(e)=>{
+                                        setDisplayName(e.target.value);
+                                        try { localStorage.setItem('profile.displayName', e.target.value); } catch {}
+                                    }}
+                                    placeholder='Your name'
+                                    style={{ maxWidth: 320 }}
+                                />
+                            </div>
+                            <div className='auth-label' style={{ color: '#4B5563', fontSize: 13, marginTop: 6 }}>
+                                {user?.email || ''}
+                            </div>
+                            <div className='auth-label' style={{ marginTop: 12 }}>
+                                <label style={{ display: 'block', fontSize: 12, color: '#6B7280' }}>Blood Type</label>
+                                <select
+                                    className='auth-input'
+                                    value={editBloodType}
+                                    onChange={(e)=>{ setEditBloodType(e.target.value); try { localStorage.setItem('profile.bloodType', e.target.value); } catch {} }}
+                                    style={{ width: '100%' }}
+                                >
+                                    <option>O+</option>
+                                    <option>O-</option>
+                                    <option>A+</option>
+                                    <option>A-</option>
+                                    <option>B+</option>
+                                    <option>B-</option>
+                                    <option>AB+</option>
+                                    <option>AB-</option>
+                                </select>
+                            </div>
+                            <div className='auth-label' style={{ marginTop: 12 }}>
+                                <label style={{ display: 'block', fontSize: 12, color: '#6B7280' }}>Date of Birth</label>
+                                {(() => {
+                                    const today = new Date();
+                                    const maxDobDate = new Date(today.getFullYear() - 17, today.getMonth(), today.getDate());
+                                    const maxDob = maxDobDate.toISOString().slice(0,10);
+                                    return (
+                                        <>
+                                            <input
+                                                className='auth-input'
+                                                type='date'
+                                                value={editDob}
+                                                max={maxDob}
+                                                onChange={(e)=>{
+                                                    const val = e.target.value;
+                                                    setEditDob(val);
+                                                    if (!val) { setDobError(''); return; }
+                                                    const d = new Date(val);
+                                                    const age = today.getFullYear() - d.getFullYear() - ((today.getMonth() < d.getMonth() || (today.getMonth() === d.getMonth() && today.getDate() < d.getDate())) ? 1 : 0);
+                                                    if (age < 17) {
+                                                        setDobError('You must be at least 17 years old.');
+                                                    } else {
+                                                        setDobError('');
+                                                        try { localStorage.setItem('profile.dob', val); } catch {}
+                                                    }
+                                                }}
+                                                style={{ width: '100%', borderColor: dobError ? '#ef4444' : undefined }}
+                                            />
+                                            {dobError && (<div className='auth-label' style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{dobError}</div>)}
+                                            {!dobError && editDob && (<div className='auth-label' style={{ color: '#6B7280', fontSize: 12, marginTop: 4 }}>Minimum age: 17+</div>)}
+                                        </>
+                                    );
+                                })()}
+                                
+                            </div>
+                            <div className='auth-label' style={{ marginTop: 12 }}>
+                                <label style={{ display: 'block', fontSize: 12, color: '#6B7280' }}>Phone Number</label>
+                                <input
+                                    className='auth-input'
+                                    type='tel'
+                                    inputMode='numeric'
+                                    pattern='\d{8}'
+                                    maxLength={8}
+                                    placeholder='99888888'
+                                    value={editPhone}
+                                    onChange={(e)=>{
+                                        const digitsOnly = (e.target.value || '').replace(/\D+/g, '').slice(0,8);
+                                        setEditPhone(digitsOnly);
+                                        try { localStorage.setItem('profile.phone', digitsOnly); } catch {}
+                                    }}
+                                    style={{ width: '100%' }}
+                                />
+                                <div className='auth-label' style={{ fontSize: 12, color: '#6B7280', marginTop: 4 }}>Enter exactly 8 digits.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className='auth-label' style={{ lineHeight: 1.8 }}>
+                        <div>Total Donations: {donations.length}</div>
+                        <div>Last Donation: {donations[0] ? new Date(donations[0].createdAt).toLocaleDateString() : '—'}</div>
+                        <div style={{ marginTop: 10, padding: 14, background: '#fff7f7', border: '1px solid #ffcccc', borderRadius: 10, boxShadow: '0 2px 6px rgba(228,0,43,0.08)' }}>
+                            <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                <span style={{ display: 'inline-flex', width: 20, height: 20, borderRadius: '50%', background: '#e4002b', color: '#fff', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>!</span>
+                                <span style={{ fontSize: 18 }}>Next Eligible Donation</span>
+                            </div>
+                            <div>
+                                {(() => {
+                                    const ne = computeNextEligible();
+                                    if (!ne.date) return <span style={{ fontSize: 14, color: '#555' }}>No recent donations recorded.</span>;
+                                    return <span style={{ fontSize: 16 }}>{ne.date.toLocaleDateString()} • {ne.daysLeft ? `${ne.daysLeft} day(s) left` : 'Eligible now'}</span>;
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right: Donation history list */}
+                <div className='auth-card' style={{ padding: 20, height: '100%', boxShadow: '0 6px 20px rgba(0,0,0,0.08)', borderRadius: 14 }}>
+                    <div className='auth-title' style={{ fontSize: 20, fontWeight: 700, color: '#6B0000', textAlign: 'center', marginBottom: 10 }}>Donation History</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <span className='auth-label' style={{ color: '#374151', fontWeight: 600 }}>Your past donations</span>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                            <label className='auth-label' htmlFor='donation-sort' style={{ color: '#6B7280' }}>Sort</label>
+                            <select
+                                id='donation-sort'
+                                className='auth-input'
+                                value={donationSort}
+                                onChange={(e)=>{ setDonationSort(e.target.value); try { localStorage.setItem('profile.donationSort', e.target.value); } catch {} }}
+                                style={{ maxWidth: 200, paddingRight: 28, background: '#F9FAFB', borderColor: '#E5E7EB' }}
+                            >
+                                <option value='date_desc'>Newest first</option>
+                                <option value='date_asc'>Oldest first</option>
+                            </select>
+                        </div>
+                    </div>
+                    {donations.length === 0 ? (
+                        <p className='auth-label' style={{ textAlign: 'center' }}>No donations submitted yet.</p>
+                    ) : (
+                        <div>
+                            {([...donations].sort((a,b)=>{
+                                const da = new Date(a.createdAt).getTime();
+                                const db = new Date(b.createdAt).getTime();
+                                switch (donationSort) {
+                                    case 'date_asc': return da - db;
+                                    case 'date_desc':
+                                    default:
+                                        return db - da;
+                                }
+                            })).map((d, idx) => (
+                                <div
+                                    key={d._id}
+                                    style={{
+                                        background: '#fff',
+                                        border: '1px solid #E5E7EB',
+                                        borderRadius: 12,
+                                        padding: 14,
+                                        marginBottom: 12,
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                                    }}
+                                >
+                                    <div style={{ display: 'grid', gridTemplateColumns: '24px 1fr', alignItems: 'center', columnGap: 10 }}>
+                                        <span style={{ fontSize: 20, lineHeight: 1 }}>🩸</span>
+                                        <div className='auth-label' style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', columnGap: 8 }}>
+                                            <span>Hospital Name: {d.hospitalLocation || '—'}</span>
+                                            <span style={{ whiteSpace: 'nowrap' }}>Date: {new Date(d.createdAt).toLocaleDateString()} • Time: {new Date(d.createdAt).toLocaleTimeString()}</span>
+                                        </div>
+                                    </div>
+                                    <div className='auth-label' style={{ marginTop: 8 }}>
+                                        <span
+                                            style={{
+                                                display: 'inline-block',
+                                                padding: '4px 10px',
+                                                borderRadius: 999,
+                                                background: '#f5f5f5',
+                                                color: '#333',
+                                                fontSize: 12
+                                            }}
+                                        >
+                                            {d.status || 'Submitted'}
+                                        </span>
+                                    </div>
+                                    {idx < donations.length - 1 && (<div style={{ marginTop: 10, borderTop: '1px solid #eee' }} />)}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Requests and Health side-by-side */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 30, alignItems: 'stretch' }}>
+                {/* My Blood Requests */}
+                <div className='auth-card' style={{ padding: 20, boxShadow: '0 6px 20px rgba(0,0,0,0.08)', borderRadius: 14, height: '100%' }}>
+                    <div className='auth-title' style={{ fontSize: 20, fontWeight: 700, color: '#6B0000', textAlign: 'center', marginBottom: 14 }}>My Blood Requests</div>
+                    <p className='auth-label' style={{ textAlign: 'center', marginBottom: 16 }}>
+                        Submitting requests is not available in the profile. This section only shows your request history.
+                    </p>
+                    <div style={{ marginTop: 10 }}>
+                        <div className='auth-title' style={{ fontSize: 15, marginBottom: 8 }}>History</div>
+                        {requests.length === 0 ? (
+                            <p className='auth-label'>No requests yet.</p>
+                        ) : (
+                            <div>
+                                {requests.map((r, idx) => (
+                                    <div key={r.id} style={{ border: '1px solid #E5E7EB', borderRadius: 12, padding: 12, marginBottom: 10, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center' }}>
+                                            <span className='auth-label'>Type: {r.type} • Hospital: {r.location} • Units: {r.units} • Phone: {r.phone}</span>
+                                            <span className='auth-label' style={{ whiteSpace: 'nowrap' }}>Date: {new Date(r.createdAt).toLocaleDateString()} • Time: {new Date(r.createdAt).toLocaleTimeString()}</span>
+                                        </div>
+                                        {idx < requests.length - 1 && (<div style={{ marginTop: 10, borderTop: '1px solid #eee' }} />)}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -245,6 +522,18 @@ const User = () => {
                     <p className='auth-label' style={{ textAlign: 'center', marginBottom: 12 }}>Add any relevant notes (allergies, past conditions, medications). This is private and stored locally until backend support.</p>
                     <label className='auth-label d-block' style={{ marginBottom: 6 }}>Notes</label>
                     <textarea className='auth-input' rows={8} placeholder='e.g., Allergy to penicillin. No chronic conditions. Not taking medication.' value={healthHistory} onChange={(e)=>{ setHealthHistory(e.target.value); try { localStorage.setItem('profile.healthHistory', e.target.value); } catch {} }} style={{ width: '100%' }} />
+                    <p className='auth-label' style={{ textAlign: 'center', marginBottom: 12 }}>
+                        Add any relevant notes (allergies, past conditions, medications). This is private and stored locally until backend support.
+                    </p>
+                    <label className='auth-label d-block' style={{ marginBottom: 6 }}>Notes</label>
+                    <textarea
+                        className='auth-input'
+                        rows={8}
+                        placeholder='e.g., Allergy to penicillin. No chronic conditions. Not taking medication.'
+                        value={healthHistory}
+                        onChange={(e)=>{ setHealthHistory(e.target.value); try { localStorage.setItem('profile.healthHistory', e.target.value); } catch {} }}
+                        style={{ width: '100%' }}
+                    />
                 </div>
             </div>
         </div>

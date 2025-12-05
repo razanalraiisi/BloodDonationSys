@@ -1,9 +1,23 @@
-import { Container, Row, Col, Card, CardBody, Button, Table, Modal, ModalHeader, ModalBody, ModalFooter, Input } from "reactstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  CardBody,
+  Button,
+  Table,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Input
+} from "reactstrap";
 import Footer from "./Footer";
 import axios from "axios";
 import { useState, useEffect } from "react";
 
 const Admin = () => {
+
   const [stats] = useState({
     activeDonors: 1000,
     livesSaved: 3700,
@@ -14,8 +28,12 @@ const Admin = () => {
   const [requests, setRequests] = useState([]);
 
   const loadRequests = async () => {
-    const res = await axios.get("http://localhost:5000/request/all");
-    setRequests(res.data);
+    try {
+      const res = await axios.get("http://localhost:5000/request/all");
+      setRequests(res.data);
+    } catch (err) {
+      console.log("Error loading requests:", err);
+    }
   };
 
   useEffect(() => {
@@ -34,8 +52,6 @@ const Admin = () => {
 
   const [modal, setModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [search, setSearch] = useState("");
-
   const toggleModal = () => setModal(!modal);
 
   const viewDetails = (req) => {
@@ -43,12 +59,17 @@ const Admin = () => {
     toggleModal();
   };
 
+  const [search, setSearch] = useState("");
+
   const filteredRequests = requests.filter((r) => {
-    if (!search) return true;
+    const term = search.toLowerCase();
     return (
-      r.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-      r.bloodType?.toLowerCase().includes(search.toLowerCase()) ||
-      r.hospital?.toLowerCase().includes(search.toLowerCase())
+      r.patientName?.toLowerCase().includes(term) ||
+      r.userEmail?.toLowerCase().includes(term) ||
+      r.bloodType?.toLowerCase().includes(term) ||
+      r.hospital?.toLowerCase().includes(term) ||
+      r.urgency?.toLowerCase().includes(term) ||
+      r.status?.toLowerCase().includes(term)
     );
   });
 
@@ -93,31 +114,41 @@ const Admin = () => {
 
       {/* Requests Table */}
       <Row className="mt-4 justify-content-center">
-        <Col md="10">
+        <Col md="11">
           <Card className="info-card">
             <CardBody>
               <h4 className="admin-section-title">Blood Requests</h4>
+
               <Table bordered responsive className="admin-table mt-3">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Blood Type</th>
+                    <th>Patient Name</th>
+                    <th>User Email</th>
+                    <th>Blood</th>
                     <th>Hospital</th>
-                    <th>Date Required</th>
+                    <th>Urgency</th>
+                    <th>Date Needed</th>
+                    <th>Units</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {filteredRequests.map((r) => (
                     <tr key={r._id}>
-                      <td>{r.fullName}</td>
+                      <td>{r.patientName}</td>
+                      <td>{r.userEmail}</td>
                       <td>{r.bloodType}</td>
                       <td>{r.hospital}</td>
-                      <td>{r.dateReq}</td>
+                      <td>{r.urgency}</td>
+                      <td>{r.neededDate}</td>
+                      <td>{r.bloodUnits}</td>
                       <td>{r.status}</td>
+
                       <td>
-                        <Button size="sm" className="admin-btn-view me-2" onClick={() => viewDetails(r)}>View</Button>
+                        <Button size="sm" onClick={() => viewDetails(r)} className="admin-btn-view me-2">View</Button>
+
                         {r.status === "Pending" && (
                           <>
                             <Button size="sm" className="admin-btn-approve me-2" onClick={() => approve(r._id)}>Approve</Button>
@@ -141,13 +172,29 @@ const Admin = () => {
         <Modal isOpen={modal} toggle={toggleModal}>
           <ModalHeader toggle={toggleModal}>Request Details</ModalHeader>
           <ModalBody>
-            <p><b>Name:</b> {selectedRequest.fullName}</p>
+            <p><b>Patient Name:</b> {selectedRequest.patientName}</p>
+            <p><b>User Email:</b> {selectedRequest.userEmail}</p>
+            <p><b>Patient ID:</b> {selectedRequest.patientId}</p>
+            <p><b>Hospital File No:</b> {selectedRequest.hospitalFileNumber}</p>
+            <p><b>Relationship:</b> {selectedRequest.relationship}</p>
             <p><b>Blood Type:</b> {selectedRequest.bloodType}</p>
-            <p><b>Hospital:</b> {selectedRequest.hhospital}</p>
-            <p><b>Date Required:</b> {selectedRequest.dateReq}</p>
+            <p><b>Units:</b> {selectedRequest.bloodUnits}</p>
+            <p><b>Reason:</b> {selectedRequest.reason}</p>
+            <p><b>Hospital:</b> {selectedRequest.hospital}</p>
             <p><b>Urgency:</b> {selectedRequest.urgency}</p>
-            <p><b>Status:</b> {selectedRequest.status}</p>
+            <p><b>Needed Date:</b> {selectedRequest.neededDate}</p>
+            <p><b>Mode:</b> {selectedRequest.mode}</p>
+
+            {selectedRequest.medicalReportPath && (
+              <p>
+                <b>Medical Report: </b>
+                <a href={`http://localhost:5000/${selectedRequest.medicalReportPath}`} target="_blank">
+                  Download
+                </a>
+              </p>
+            )}
           </ModalBody>
+
           <ModalFooter>
             <Button color="secondary" onClick={toggleModal}>Close</Button>
           </ModalFooter>
