@@ -11,7 +11,7 @@ import {
     DropdownItem
 } from 'reactstrap';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaHome, FaUserAlt, FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,11 +22,31 @@ const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const user = useSelector((state)=>state.users.user);
+    const [profileUrl, setProfileUrl] = useState('');
+    const defPic = "https://i.pinimg.com/736x/b6/e6/87/b6e687094f11e465e7d710a6b5754a4e.jpg";
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
     const toggle = () => setIsOpen(!isOpen);
     const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+
+    useEffect(() => {
+        try {
+            const savedPic = localStorage.getItem('profile.profileUrl');
+            if (savedPic) setProfileUrl(savedPic);
+            else setProfileUrl('');
+        } catch {}
+        const onProfileUpdated = () => {
+            try {
+                const updatedPic = localStorage.getItem('profile.profileUrl');
+                setProfileUrl(updatedPic || '');
+            } catch {}
+        };
+        window.addEventListener('profile-updated', onProfileUpdated);
+        return () => {
+            window.removeEventListener('profile-updated', onProfileUpdated);
+        };
+    }, [user?.email]);
 
     return (
         <Navbar className="navigation" light expand="md" style={styles.navbar}>
@@ -51,9 +71,10 @@ const Header = () => {
                         </DropdownToggle>
 
                         <DropdownMenu>
-                            <DropdownItem tag={Link} to="/request">Request Blood</DropdownItem>
-                            <DropdownItem tag={Link} to="/donate">Donate Blood</DropdownItem>
-                            <DropdownItem tag={Link} to="/centers">Donation Centers</DropdownItem>
+                            <DropdownItem style={styles.link} tag={Link} to="/request">Request Blood</DropdownItem>
+                            <DropdownItem style={styles.link} tag={Link} to="/donate">Donate Blood</DropdownItem>
+                            <DropdownItem style={styles.link}tag={Link} to="/centers">Donation Centers</DropdownItem>
+                            <DropdownItem style={styles.link} tag={Link} to="/info">Eligibility & Terms</DropdownItem>
                         </DropdownMenu>
                     </Dropdown>
 
@@ -64,22 +85,28 @@ const Header = () => {
 
                     {/* LOGIN / LOGOUT BUTTON */}
                     <NavItem>
-                        {!user ? (
-                            <Link to="/login" style={styles.icon}><FaSignInAlt /></Link>
-                        ) : (
-                            <button
-                                style={styles.iconButton}
-                                onClick={() => { dispatch(logout()); navigate('/login'); }}
-                                title="Logout"
-                            >
-                                <FaSignOutAlt />
-                            </button>
-                        )}
+                        <Link to="/UserProfile" style={{ ...styles.icon, display: 'flex', alignItems: 'center' }}>
+                            {profileUrl ? (
+                                <img src={profileUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 6px rgba(0,0,0,0.15)', border: '2px solid #fff' }} />
+                            ) : (
+                                <FaUserAlt />
+                            )}
+                        </Link>
                     </NavItem>
 
-                    {/* USER PROFILE */}
                     <NavItem>
-                        <Link to="/UserProfile" style={styles.icon}><FaUserAlt /></Link>
+                                                {!user ? (
+                                                        <Link to="/login" style={styles.icon}><FaSignInAlt /></Link>
+                                                ) : (
+                                                        <a
+                                                            href="#"
+                                                            style={styles.icon}
+                                                            onClick={(e)=>{e.preventDefault(); dispatch(logout()); navigate('/login');}}
+                                                            title="Logout"
+                                                        >
+                                                            <FaSignOutAlt />
+                                                        </a>
+                                                )}
                     </NavItem>
 
                 </Nav>

@@ -12,6 +12,7 @@ import DonateBlood from './components/DonateBlood.js';
 import User from './components/User.js';
 import AboutUs from './components/AboutUs.js';
 import LandingPage from './components/LandingPage.js';
+import EligibilityTerms from './components/EligibilityTerms.js';
 import Admin from './components/Admin.js';
 
 function AppContent() {
@@ -35,6 +36,7 @@ function AppContent() {
           <Route path="/request" element={<RequestBlood />} />
           <Route path="/centers" element={<DonationCenter />} />
           <Route path="/donate" element={<DonateBlood />} />
+          <Route path="/info" element={<EligibilityTerms />} />
           <Route path="/UserProfile" element={<User />} />
           <Route path="/AboutUs" element={<AboutUs />} />
           <Route path="/admin" element={<Admin />} />
