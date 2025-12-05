@@ -47,6 +47,47 @@ const DonateBlood = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState({});
 
+    // Eligibility based on previous donation interval
+    const [eligibility, setEligibility] = useState({ eligibleNow: true, nextDate: null, daysLeft: 0, lastType: null });
+
+    const getIntervalDays = (type) => {
+        switch (type) {
+            case 'Whole Blood':
+                return 56;
+            case 'Platelets':
+                return 7;
+            case 'Plasma':
+                return 28;
+            case 'Double Red Cells':
+                return 112;
+            default:
+                return 56;
+        }
+    };
+
+    useEffect(() => {
+        const email = user?.email || localStorage.getItem('userEmail');
+        if (!email) return;
+        axios.post('http://localhost:5000/donation/mine', { email })
+            .then(res => {
+                const list = Array.isArray(res.data) ? res.data : [];
+                if (list.length === 0) {
+                    setEligibility({ eligibleNow: true, nextDate: null, daysLeft: 0, lastType: null });
+                    return;
+                }
+                const last = list[0]; // server returns sorted desc
+                const lastDate = new Date(last.createdAt);
+                const days = getIntervalDays(last.donationType);
+                const next = new Date(lastDate);
+                next.setDate(next.getDate() + days);
+                const today = new Date();
+                const eligibleNow = today >= next;
+                const daysLeft = eligibleNow ? 0 : Math.max(0, Math.ceil((next.getTime() - today.getTime()) / (1000*60*60*24)));
+                setEligibility({ eligibleNow, nextDate: next, daysLeft, lastType: last.donationType });
+            })
+            .catch(() => setEligibility({ eligibleNow: true, nextDate: null, daysLeft: 0, lastType: null }));
+    }, [user?.email]);
+
     const validate = () => {
         const errs = {};
         if (!feelingWell) errs.feelingWell = 'Please select Yes or No.';
@@ -76,6 +117,12 @@ const DonateBlood = () => {
 
         if (shouldFail) {
             setDonationError("Donation failed because it didn't match the terms and conditions.");
+            return;
+        }
+
+        // Block if not yet eligible based on interval since last donation
+        if (!eligibility.eligibleNow && eligibility.nextDate) {
+            setDonationError(`You are not eligible to donate yet. Please wait until ${eligibility.nextDate.toLocaleDateString()}.`);
             return;
         }
 
@@ -112,7 +159,21 @@ const DonateBlood = () => {
         <div className="auth-page">
             <div className="auth-card">
                 <div className="auth-header">
-                    <img alt='Logo' height={36} src={Logo} />
+                    <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <button
+                            aria-label='Go back'
+                            onClick={()=>navigate(-1)}
+                            style={{
+                                position: 'absolute', left: 0,
+                                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 999,
+                                width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.06)'
+                            }}
+                        >
+                            ←
+                        </button>
+                        <img alt='Logo' height={36} src={Logo} />
+                    </div>
                 </div>
                 <h2 className="auth-title">Donate Blood Form</h2>
                 <p
@@ -148,6 +209,14 @@ const DonateBlood = () => {
                 {donationSuccess && (
                     <Alert color="success" className='mb-3'>
                         {donationSuccess}
+                    </Alert>
+                )}
+                <p className='auth-label' style={{ textAlign: 'center', marginBottom: 12 }}>
+                    See <a href='/info' style={{ color: '#B3261E', textDecoration: 'underline' }}>Eligibility & Terms</a> before you donate.
+                </p>
+                {!eligibility.eligibleNow && eligibility.nextDate && (
+                    <Alert color="warning" className='mb-3'>
+                        You are not eligible to donate yet. Next eligible date ({eligibility.lastType}): {eligibility.nextDate.toLocaleDateString()} {eligibility.daysLeft ? `• ${eligibility.daysLeft} day(s) left` : ''}
                     </Alert>
                 )}
                 <form onSubmit={handleSubmit}>
@@ -253,7 +322,8 @@ const DonateBlood = () => {
                                 isSubmitting ||
                                 !user?.email ||
                                 !feelingWell || !healthChanges || !medication || !chronicIllness ||
-                                !donationType || !hospitalLocation.trim()
+                                !donationType || !hospitalLocation.trim() ||
+                                (!eligibility.eligibleNow && !!eligibility.nextDate)
                             }
                         >
                             {isSubmitting ? 'Submitting...' : 'Submit'}
