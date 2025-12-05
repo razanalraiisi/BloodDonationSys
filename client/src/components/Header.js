@@ -50,11 +50,13 @@ const Header = () => {
 
     return (
         <Navbar className="navigation" light expand="md" style={styles.navbar}>
-            <NavbarBrand>
-                <Link to="/">
-                    <img src={Logo} width="75px" height="75px" alt="logo" />
-                </Link>
-                <h6 style={{ display: 'inline', color: '#B3261E', marginLeft: '10px', fontWeight: '700' }}>BloodLink</h6>
+            
+            {/* FIX: NavbarBrand becomes a Link directly */}
+            <NavbarBrand tag={Link} to="/" style={{ display: "flex", alignItems: "center" }}>
+                <img src={Logo} width="75px" height="75px" alt="logo" />
+                <h6 style={{ color: '#B3261E', marginLeft: '10px', fontWeight: '700' }}>
+                    BloodLink
+                </h6>
             </NavbarBrand>
 
             <NavbarToggler onClick={toggle} />
@@ -62,7 +64,7 @@ const Header = () => {
             <Collapse isOpen={isOpen} navbar>
                 <Nav className="ms-auto align-items-center" navbar>
 
-                    
+                    {/* SERVICES DROPDOWN */}
                     <Dropdown nav isOpen={dropdownOpen} toggle={toggleDropdown}>
                         <DropdownToggle nav caret style={styles.link}>
                             Services
@@ -76,10 +78,12 @@ const Header = () => {
                         </DropdownMenu>
                     </Dropdown>
 
+                    {/* ABOUT PAGE */}
                     <NavItem>
                         <Link to="/AboutUs" style={styles.link}>About Us</Link>
                     </NavItem>
 
+                    {/* LOGIN / LOGOUT BUTTON */}
                     <NavItem>
                         <Link to="/UserProfile" style={{ ...styles.icon, display: 'flex', alignItems: 'center' }}>
                             {profileUrl ? (
@@ -131,5 +135,13 @@ const styles = {
         color: "#B3261E",
         fontSize: "20px",
         marginLeft: "15px",
+    },
+    iconButton: {
+        background: "none",
+        border: "none",
+        color: "#B3261E",
+        fontSize: "20px",
+        marginLeft: "15px",
+        cursor: "pointer"
     }
 };
