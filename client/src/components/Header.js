@@ -33,6 +33,7 @@ const Header = () => {
     useEffect(() => {
         try {
             const savedPic = localStorage.getItem('profile.profileUrl');
+            setProfileUrl(savedPic || '');
             if (savedPic) setProfileUrl(savedPic);
             else setProfileUrl('');
         } catch {}
@@ -95,18 +96,28 @@ const Header = () => {
                     </NavItem>
 
                     <NavItem>
-                                                {!user ? (
-                                                        <Link to="/login" style={styles.icon}><FaSignInAlt /></Link>
-                                                ) : (
-                                                        <a
-                                                            href="#"
-                                                            style={styles.icon}
-                                                            onClick={(e)=>{e.preventDefault(); dispatch(logout()); navigate('/login');}}
-                                                            title="Logout"
-                                                        >
-                                                            <FaSignOutAlt />
-                                                        </a>
-                                                )}
+                        <Link to="/UserProfile" style={{ ...styles.icon, display: 'flex', alignItems: 'center' }}>
+                            {profileUrl ? (
+                                <img src={profileUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 6px rgba(0,0,0,0.15)', border: '2px solid #fff' }} />
+                            ) : (
+                                <FaUserAlt />
+                            )}
+                        </Link>
+                    </NavItem>
+
+                    <NavItem>
+                        {!user ? (
+                            <Link to="/login" style={styles.icon}><FaSignInAlt /></Link>
+                        ) : (
+                            <a
+                                href="#"
+                                style={styles.icon}
+                                onClick={(e)=>{e.preventDefault(); dispatch(logout()); navigate('/login');}}
+                                title="Logout"
+                            >
+                                <FaSignOutAlt />
+                            </a>
+                        )}
                     </NavItem>
 
                 </Nav>
