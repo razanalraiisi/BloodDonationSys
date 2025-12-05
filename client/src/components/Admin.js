@@ -60,11 +60,11 @@ const AdminDashboard = () => {
     const term = search.toLowerCase();
     return (
       r.patientName?.toLowerCase().includes(term) ||
+      r.userEmail?.toLowerCase().includes(term) ||
       r.bloodType?.toLowerCase().includes(term) ||
       r.hospital?.toLowerCase().includes(term) ||
       r.urgency?.toLowerCase().includes(term) ||
-      r.status?.toLowerCase().includes(term) ||
-      r.userEmail?.toLowerCase().includes(term)
+      r.status?.toLowerCase().includes(term)
     );
   });
 
@@ -171,10 +171,11 @@ const AdminDashboard = () => {
                   <tr>
                     <th>Patient Name</th>
                     <th>User Email</th>
-                    <th>Blood Type</th>
+                    <th>Blood</th>
                     <th>Hospital</th>
                     <th>Urgency</th>
-                    <th>Needed Date</th>
+                    <th>Date Needed</th>
+                    <th>Units</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -187,6 +188,7 @@ const AdminDashboard = () => {
                       <td>{r.hospital}</td>
                       <td>{r.urgency}</td>
                       <td>{r.neededDate}</td>
+                      <td>{r.bloodUnits}</td>
                       <td>{r.status}</td>
                     </tr>
                   ))}
