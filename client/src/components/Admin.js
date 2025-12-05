@@ -18,7 +18,6 @@ import { useState, useEffect } from "react";
 
 const Admin = () => {
 
-  // Dashboard stats
   const [stats] = useState({
     activeDonors: 1000,
     livesSaved: 3700,
@@ -26,7 +25,6 @@ const Admin = () => {
     centers: 12,
   });
 
-  // Requests
   const [requests, setRequests] = useState([]);
 
   const loadRequests = async () => {
@@ -42,19 +40,16 @@ const Admin = () => {
     loadRequests();
   }, []);
 
-  // Approve request
   const approve = async (id) => {
     await axios.post("http://localhost:5000/request/approve", { id });
     loadRequests();
   };
 
-  // Reject request
   const reject = async (id) => {
     await axios.post("http://localhost:5000/request/reject", { id });
     loadRequests();
   };
 
-  // Modal controls
   const [modal, setModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const toggleModal = () => setModal(!modal);
@@ -64,21 +59,17 @@ const Admin = () => {
     toggleModal();
   };
 
-  // Search bar
   const [search, setSearch] = useState("");
 
   const filteredRequests = requests.filter((r) => {
-    if (!search.trim()) return true;
-
     const term = search.toLowerCase();
-
     return (
       r.patientName?.toLowerCase().includes(term) ||
+      r.userEmail?.toLowerCase().includes(term) ||
       r.bloodType?.toLowerCase().includes(term) ||
       r.hospital?.toLowerCase().includes(term) ||
       r.urgency?.toLowerCase().includes(term) ||
-      r.status?.toLowerCase().includes(term) ||
-      r.userEmail?.toLowerCase().includes(term)
+      r.status?.toLowerCase().includes(term)
     );
   });
 
@@ -90,7 +81,7 @@ const Admin = () => {
         </Col>
       </Row>
 
-      {/* Stats Boxes */}
+      {/* Stats */}
       <Row className="mt-4 justify-content-center">
         {[
           { label: "Active Donors", value: stats.activeDonors },
@@ -109,7 +100,7 @@ const Admin = () => {
         ))}
       </Row>
 
-      {/* Search Bar */}
+      {/* Search */}
       <Row className="mt-5 justify-content-center">
         <Col md="4">
           <Input
@@ -133,10 +124,11 @@ const Admin = () => {
                   <tr>
                     <th>Patient Name</th>
                     <th>User Email</th>
-                    <th>Blood Type</th>
+                    <th>Blood</th>
                     <th>Hospital</th>
                     <th>Urgency</th>
-                    <th>Needed Date</th>
+                    <th>Date Needed</th>
+                    <th>Units</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -151,34 +143,16 @@ const Admin = () => {
                       <td>{r.hospital}</td>
                       <td>{r.urgency}</td>
                       <td>{r.neededDate}</td>
+                      <td>{r.bloodUnits}</td>
                       <td>{r.status}</td>
 
                       <td>
-                        <Button
-                          size="sm"
-                          className="admin-btn-view me-2"
-                          onClick={() => viewDetails(r)}
-                        >
-                          View
-                        </Button>
+                        <Button size="sm" onClick={() => viewDetails(r)} className="admin-btn-view me-2">View</Button>
 
                         {r.status === "Pending" && (
                           <>
-                            <Button
-                              size="sm"
-                              className="admin-btn-approve me-2"
-                              onClick={() => approve(r._id)}
-                            >
-                              Approve
-                            </Button>
-
-                            <Button
-                              size="sm"
-                              className="admin-btn-reject"
-                              onClick={() => reject(r._id)}
-                            >
-                              Reject
-                            </Button>
+                            <Button size="sm" className="admin-btn-approve me-2" onClick={() => approve(r._id)}>Approve</Button>
+                            <Button size="sm" className="admin-btn-reject" onClick={() => reject(r._id)}>Reject</Button>
                           </>
                         )}
                       </td>
@@ -193,19 +167,32 @@ const Admin = () => {
 
       <Footer />
 
-      {/* Modal - Request Details */}
+      {/* Modal */}
       {selectedRequest && (
         <Modal isOpen={modal} toggle={toggleModal}>
           <ModalHeader toggle={toggleModal}>Request Details</ModalHeader>
-
           <ModalBody>
             <p><b>Patient Name:</b> {selectedRequest.patientName}</p>
             <p><b>User Email:</b> {selectedRequest.userEmail}</p>
+            <p><b>Patient ID:</b> {selectedRequest.patientId}</p>
+            <p><b>Hospital File No:</b> {selectedRequest.hospitalFileNumber}</p>
+            <p><b>Relationship:</b> {selectedRequest.relationship}</p>
             <p><b>Blood Type:</b> {selectedRequest.bloodType}</p>
+            <p><b>Units:</b> {selectedRequest.bloodUnits}</p>
+            <p><b>Reason:</b> {selectedRequest.reason}</p>
             <p><b>Hospital:</b> {selectedRequest.hospital}</p>
             <p><b>Urgency:</b> {selectedRequest.urgency}</p>
             <p><b>Needed Date:</b> {selectedRequest.neededDate}</p>
-            <p><b>Status:</b> {selectedRequest.status}</p>
+            <p><b>Mode:</b> {selectedRequest.mode}</p>
+
+            {selectedRequest.medicalReportPath && (
+              <p>
+                <b>Medical Report: </b>
+                <a href={`http://localhost:5000/${selectedRequest.medicalReportPath}`} target="_blank">
+                  Download
+                </a>
+              </p>
+            )}
           </ModalBody>
 
           <ModalFooter>
