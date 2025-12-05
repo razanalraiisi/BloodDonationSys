@@ -33,7 +33,6 @@ const Header = () => {
     useEffect(() => {
         try {
             const savedPic = localStorage.getItem('profile.profileUrl');
-            setProfileUrl(savedPic || '');
             if (savedPic) setProfileUrl(savedPic);
             else setProfileUrl('');
         } catch {}
@@ -51,13 +50,11 @@ const Header = () => {
 
     return (
         <Navbar className="navigation" light expand="md" style={styles.navbar}>
-            
-            {/* FIX: NavbarBrand becomes a Link directly */}
-            <NavbarBrand tag={Link} to="/" style={{ display: "flex", alignItems: "center" }}>
-                <img src={Logo} width="75px" height="75px" alt="logo" />
-                <h6 style={{ color: '#B3261E', marginLeft: '10px', fontWeight: '700' }}>
-                    BloodLink
-                </h6>
+            <NavbarBrand>
+                <Link to="/">
+                    <img src={Logo} width="75px" height="75px" alt="logo" />
+                </Link>
+                <h6 style={{ display: 'inline', color: '#B3261E', marginLeft: '10px', fontWeight: '700' }}>BloodLink</h6>
             </NavbarBrand>
 
             <NavbarToggler onClick={toggle} />
@@ -65,7 +62,7 @@ const Header = () => {
             <Collapse isOpen={isOpen} navbar>
                 <Nav className="ms-auto align-items-center" navbar>
 
-                    {/* SERVICES DROPDOWN */}
+                    
                     <Dropdown nav isOpen={dropdownOpen} toggle={toggleDropdown}>
                         <DropdownToggle nav caret style={styles.link}>
                             Services
@@ -79,12 +76,10 @@ const Header = () => {
                         </DropdownMenu>
                     </Dropdown>
 
-                    {/* ABOUT PAGE */}
                     <NavItem>
                         <Link to="/AboutUs" style={styles.link}>About Us</Link>
                     </NavItem>
 
-                    {/* LOGIN / LOGOUT BUTTON */}
                     <NavItem>
                         <Link to="/UserProfile" style={{ ...styles.icon, display: 'flex', alignItems: 'center' }}>
                             {profileUrl ? (
@@ -96,28 +91,18 @@ const Header = () => {
                     </NavItem>
 
                     <NavItem>
-                        <Link to="/UserProfile" style={{ ...styles.icon, display: 'flex', alignItems: 'center' }}>
-                            {profileUrl ? (
-                                <img src={profileUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 6px rgba(0,0,0,0.15)', border: '2px solid #fff' }} />
-                            ) : (
-                                <FaUserAlt />
-                            )}
-                        </Link>
-                    </NavItem>
-
-                    <NavItem>
-                        {!user ? (
-                            <Link to="/login" style={styles.icon}><FaSignInAlt /></Link>
-                        ) : (
-                            <a
-                                href="#"
-                                style={styles.icon}
-                                onClick={(e)=>{e.preventDefault(); dispatch(logout()); navigate('/login');}}
-                                title="Logout"
-                            >
-                                <FaSignOutAlt />
-                            </a>
-                        )}
+                                                {!user ? (
+                                                        <Link to="/login" style={styles.icon}><FaSignInAlt /></Link>
+                                                ) : (
+                                                        <a
+                                                            href="#"
+                                                            style={styles.icon}
+                                                            onClick={(e)=>{e.preventDefault(); dispatch(logout()); navigate('/login');}}
+                                                            title="Logout"
+                                                        >
+                                                            <FaSignOutAlt />
+                                                        </a>
+                                                )}
                     </NavItem>
 
                 </Nav>
@@ -146,13 +131,5 @@ const styles = {
         color: "#B3261E",
         fontSize: "20px",
         marginLeft: "15px",
-    },
-    iconButton: {
-        background: "none",
-        border: "none",
-        color: "#B3261E",
-        fontSize: "20px",
-        marginLeft: "15px",
-        cursor: "pointer"
     }
 };
