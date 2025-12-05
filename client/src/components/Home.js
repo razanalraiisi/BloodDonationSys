@@ -9,14 +9,7 @@ import bloodDonorCartoon from "../assets/bloodDonorCartoon.jpg";
 
 
 const Home=()=>{
-    //remove the comment when the login is working for now keep it as it is 
-    /*const email=useSelector((state)=>state.users.user.email);
-    const navigate=useNavigate();
     
-    useEffect(()=>{
-        if(!email)
-            navigate("/");
-    },[email]);*/
     
     return(
         <Container fluid>

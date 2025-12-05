@@ -6,17 +6,30 @@ import {
   CardBody,
   Button,
   Table,
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Input
+  Input,
+  Navbar,
+  NavbarBrand
 } from "reactstrap";
 import Footer from "./Footer";
 import axios from "axios";
 import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../features/UserSlice';
+import { useNavigate, Link } from 'react-router-dom';
+import { FaSignOutAlt, FaSignInAlt } from "react-icons/fa";
+import Logo from '../assets/logo.jpeg';
+import bloodDonation from '../assets/bloodDonation.png';
 
-const Admin = () => {
+const AdminDashboard = () => {
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.users.user);
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
 
   const [stats] = useState({
     activeDonors: 1000,
@@ -25,14 +38,16 @@ const Admin = () => {
     centers: 12,
   });
 
+
   const [requests, setRequests] = useState([]);
+  const [search, setSearch] = useState("");
 
   const loadRequests = async () => {
     try {
       const res = await axios.get("http://localhost:5000/request/all");
       setRequests(res.data);
     } catch (err) {
-      console.log("Error loading requests:", err);
+      console.log(err);
     }
   };
 
@@ -40,28 +55,8 @@ const Admin = () => {
     loadRequests();
   }, []);
 
-  const approve = async (id) => {
-    await axios.post("http://localhost:5000/request/approve", { id });
-    loadRequests();
-  };
-
-  const reject = async (id) => {
-    await axios.post("http://localhost:5000/request/reject", { id });
-    loadRequests();
-  };
-
-  const [modal, setModal] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const toggleModal = () => setModal(!modal);
-
-  const viewDetails = (req) => {
-    setSelectedRequest(req);
-    toggleModal();
-  };
-
-  const [search, setSearch] = useState("");
-
   const filteredRequests = requests.filter((r) => {
+    if (!search.trim()) return true;
     const term = search.toLowerCase();
     return (
       r.patientName?.toLowerCase().includes(term) ||
@@ -75,13 +70,48 @@ const Admin = () => {
 
   return (
     <Container fluid>
+
+      <Navbar className="navigation" light expand="md" style={styles.navbar}>
+
+        <NavbarBrand style={{ display: 'flex', alignItems: 'center' }}>
+          <Link to="/">
+            <img src={Logo} width="75px" height="75px" alt="logo" />
+          </Link>
+          <h6 style={{ marginLeft: '10px', fontWeight: '700', color: '#B3261E' }}>
+            BloodLink
+          </h6>
+        </NavbarBrand>
+
+ 
+        {user ? (
+          <Button
+            onClick={handleLogout}
+            style={{
+              backgroundColor: '#B3261E',
+              borderColor: '#B3261E',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              marginRight: '20px'
+            }}
+          >
+            <FaSignOutAlt /> Logout
+          </Button>
+        ) : (
+          <Link to="/login" style={{ color: '#B3261E', fontSize: '20px', marginRight: '20px' }}>
+            <FaSignInAlt />
+          </Link>
+        )}
+      </Navbar>
+
+
       <Row className="mt-4">
         <Col>
           <h2 className="admin-title">Admin Dashboard</h2>
         </Col>
       </Row>
 
-      {/* Stats */}
       <Row className="mt-4 justify-content-center">
         {[
           { label: "Active Donors", value: stats.activeDonors },
@@ -100,8 +130,26 @@ const Admin = () => {
         ))}
       </Row>
 
-      {/* Search */}
-      <Row className="mt-5 justify-content-center">
+
+      <Row className="mt-4 justify-content-center">
+        <Col md="3" className="d-flex flex-column align-items-center">
+          <img
+            src={bloodDonation}
+            style={{ width: '500px', height: '300px', borderRadius: '15px', marginBottom: '20px' }}
+            alt="Blood Donation"
+          />
+          <Button
+            style={{ background: '#B3261E', width: '100%' }}
+            onClick={() => navigate("/add-center")}
+          >
+            Add Donation Center
+          </Button>
+        </Col>
+      </Row><br />
+
+
+
+      <Row className="mt-4 justify-content-center">
         <Col md="4">
           <Input
             className="admin-search-input"
@@ -112,13 +160,12 @@ const Admin = () => {
         </Col>
       </Row>
 
-      {/* Requests Table */}
+
       <Row className="mt-4 justify-content-center">
         <Col md="11">
           <Card className="info-card">
             <CardBody>
               <h4 className="admin-section-title">Blood Requests</h4>
-
               <Table bordered responsive className="admin-table mt-3">
                 <thead>
                   <tr>
@@ -130,10 +177,8 @@ const Admin = () => {
                     <th>Date Needed</th>
                     <th>Units</th>
                     <th>Status</th>
-                    <th>Actions</th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {filteredRequests.map((r) => (
                     <tr key={r._id}>
@@ -145,17 +190,6 @@ const Admin = () => {
                       <td>{r.neededDate}</td>
                       <td>{r.bloodUnits}</td>
                       <td>{r.status}</td>
-
-                      <td>
-                        <Button size="sm" onClick={() => viewDetails(r)} className="admin-btn-view me-2">View</Button>
-
-                        {r.status === "Pending" && (
-                          <>
-                            <Button size="sm" className="admin-btn-approve me-2" onClick={() => approve(r._id)}>Approve</Button>
-                            <Button size="sm" className="admin-btn-reject" onClick={() => reject(r._id)}>Reject</Button>
-                          </>
-                        )}
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -166,42 +200,17 @@ const Admin = () => {
       </Row>
 
       <Footer />
-
-      {/* Modal */}
-      {selectedRequest && (
-        <Modal isOpen={modal} toggle={toggleModal}>
-          <ModalHeader toggle={toggleModal}>Request Details</ModalHeader>
-          <ModalBody>
-            <p><b>Patient Name:</b> {selectedRequest.patientName}</p>
-            <p><b>User Email:</b> {selectedRequest.userEmail}</p>
-            <p><b>Patient ID:</b> {selectedRequest.patientId}</p>
-            <p><b>Hospital File No:</b> {selectedRequest.hospitalFileNumber}</p>
-            <p><b>Relationship:</b> {selectedRequest.relationship}</p>
-            <p><b>Blood Type:</b> {selectedRequest.bloodType}</p>
-            <p><b>Units:</b> {selectedRequest.bloodUnits}</p>
-            <p><b>Reason:</b> {selectedRequest.reason}</p>
-            <p><b>Hospital:</b> {selectedRequest.hospital}</p>
-            <p><b>Urgency:</b> {selectedRequest.urgency}</p>
-            <p><b>Needed Date:</b> {selectedRequest.neededDate}</p>
-            <p><b>Mode:</b> {selectedRequest.mode}</p>
-
-            {selectedRequest.medicalReportPath && (
-              <p>
-                <b>Medical Report: </b>
-                <a href={`http://localhost:5000/${selectedRequest.medicalReportPath}`} target="_blank">
-                  Download
-                </a>
-              </p>
-            )}
-          </ModalBody>
-
-          <ModalFooter>
-            <Button color="secondary" onClick={toggleModal}>Close</Button>
-          </ModalFooter>
-        </Modal>
-      )}
     </Container>
   );
 };
 
-export default Admin;
+export default AdminDashboard;
+
+const styles = {
+  navbar: {
+    backgroundColor: "#FDF4F4",
+    borderBottom: "2px solid #E19E9C",
+    padding: "10px 20px",
+    justifyContent: "space-between"
+  }
+};
