@@ -12,18 +12,21 @@ import { isAxiosError } from 'axios';
 
 const Login = () => {
 
-    //UseStates
     let [email, setEmail] = useState('');
     let [password, setPassword] = useState('');
-    const dispatch=useDispatch();
-    const user=useSelector((state)=>state.users.user);
-    const isSuccess=useSelector((state)=>state.users.isSuccess);
-    const isError=useSelector((state)=>state.users.isError);
-    const navigate=useNavigate();
-    const location = useLocation();
-    const [showRegisteredMsg, setShowRegisteredMsg] = useState(!!(location.state && location.state.justRegistered));
 
-    //Validation Configuration
+    const dispatch = useDispatch();
+    const user = useSelector((state) => state.users.user);
+    const isSuccess = useSelector((state) => state.users.isSuccess);
+    const isError = useSelector((state) => state.users.isError);
+
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const [showRegisteredMsg, setShowRegisteredMsg] = useState(
+        !!(location.state && location.state.justRegistered)
+    );
+
     const {
         register,
         handleSubmit: submitForm,
@@ -31,21 +34,27 @@ const Login = () => {
     } = useForm({ resolver: yupResolver(UserSchemaValidation) });
 
     const validate = () => {
-        const data={
-            email:email,
-            password:password,
-        }
+        const data = {
+            email: email,
+            password: password,
+        };
         dispatch(getUser(data));
-    }
+    };
 
-    useEffect(()=>{
+    // ✅ UPDATED REDIRECTION LOGIC
+    useEffect(() => {
         if (isSuccess && user && user.email) {
-            navigate("/home");
+            if (user.isAdmin) {
+                navigate("/admin");   // redirect admin to dashboard
+            } else {
+                navigate("/home");    // normal user home page
+            }
         }
+
         if (isError) {
             navigate("/");
         }
-    },[user,isSuccess,isError,navigate]);
+    }, [user, isSuccess, isError, navigate]);
 
     return (
         <div className="auth-page">
@@ -53,12 +62,15 @@ const Login = () => {
                 <div className="auth-header">
                     <img alt='Logo' height={36} src={Logo} />
                 </div>
+
                 {showRegisteredMsg && (
-                    <Alert color="success" toggle={()=>setShowRegisteredMsg(false)}>
+                    <Alert color="success" toggle={() => setShowRegisteredMsg(false)}>
                         You have successfully registered. Please sign in.
                     </Alert>
                 )}
+
                 <h2 className="auth-title">Sign In Form</h2>
+
                 <form>
                     <FormGroup className='mb-3'>
                         <Label className='auth-label'>Email</Label>
@@ -92,7 +104,9 @@ const Login = () => {
                         </Button>
                     </div>
 
-                    <div className='auth-footer'>No account? <Link to='/register'>Sign Up</Link></div>
+                    <div className='auth-footer'>
+                        No account? <Link to='/register'>Sign Up</Link>
+                    </div>
                 </form>
             </div>
         </div>
