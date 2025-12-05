@@ -205,11 +205,16 @@ app.post("/center/add", async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
-
-app.get("/center/all", async (req, res) => {
+// GET all donation centers
+app.get("/api/donation-centers", async (req, res) => {
+  try {
     const centers = await DonationCenterModel.find();
     res.json(centers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
+
 
 // ======================================================
 // DONATION — CREATE

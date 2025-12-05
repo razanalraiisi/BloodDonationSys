@@ -14,12 +14,13 @@ import AboutUs from './components/AboutUs.js';
 import LandingPage from './components/LandingPage.js';
 import EligibilityTerms from './components/EligibilityTerms.js';
 import Admin from './components/Admin.js';
+import AddCenter from './components/AddCenter.js';
 
 function AppContent() {
   const location = useLocation();
 
-  
-  const hideOn = ["/", "/login", "/register"]; 
+  // Paths where header/footer should be hidden
+  const hideOn = ["/", "/login", "/register", "/admin", "/add-center"]; 
 
   return (
     <Container fluid className='appBG'>
@@ -40,6 +41,7 @@ function AppContent() {
           <Route path="/UserProfile" element={<User />} />
           <Route path="/AboutUs" element={<AboutUs />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/add-center" element={<AddCenter />} />
         </Routes>
       </Row>
 
@@ -49,6 +51,7 @@ function AppContent() {
     </Container>
   );
 }
+
 
 function App() {
   return (
