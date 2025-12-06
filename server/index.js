@@ -1,4 +1,3 @@
-// index.js
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -194,7 +193,6 @@ app.post(
         mode,
       } = req.body;
 
-      // basic validation to avoid Mongoose throwing 500
       if (!userEmail || !patientName || !bloodType || !hospital || !neededDate || !mode) {
         return res
           .status(400)
@@ -230,81 +228,45 @@ app.post(
 );
 
 // ======================================================
-// USER — VIEW OWN REQUESTS
+// DASHBOARD COUNTS
 // ======================================================
-app.post("/request/mine", async (req, res) => {
+let cachedLivesSaved = 0; // optimized counter
+
+const initializeCachedLivesSaved = async () => {
   try {
-    const { email } = req.body;
-    const myRequests = await RequestModel.find({ userEmail: email });
-    res.json(myRequests);
+    cachedLivesSaved = await RequestModel.countDocuments({ status: "Completed" });
+  } catch (err) {
+    console.error("Error initializing livesSaved cache:", err);
+  }
+};
+
+initializeCachedLivesSaved();
+
+app.get("/api/dashboard", async (req, res) => {
+  try {
+    // Active Donors: count unique donorEmail in Donations
+    const activeDonors = await DonationModel.distinct("donorEmail").then(
+      (emails) => emails.length
+    );
+
+    res.status(200).json({
+      activeDonors,
+      livesSaved: cachedLivesSaved,
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error loading user requests" });
+    res.status(500).json({ message: "Error fetching dashboard data" });
   }
 });
 
 // ======================================================
-// ADMIN — VIEW ALL REQUESTS
+// UPDATE REQUEST STATUS (Optimized Lives Saved Counter)
 // ======================================================
-app.get("/request/all", async (req, res) => {
+app.post("/request/updateStatus", async (req, res) => {
   try {
-    const allRequests = await RequestModel.find();
-    res.json(allRequests);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error loading requests" });
-  }
-});
-
-// ======================================================
-// ADMIN — APPROVE REQUEST
-// ======================================================
-app.post("/request/approve", async (req, res) => {
-  try {
-    const { id } = req.body;
-    await RequestModel.findByIdAndUpdate(id, { status: "Approved" });
-    res.json({ message: "Request Approved" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error approving request" });
-  }
-});
-
-// ======================================================
-// ADMIN — REJECT REQUEST
-// ======================================================
-app.post("/request/reject", async (req, res) => {
-  try {
-    const { id } = req.body;
-    await RequestModel.findByIdAndUpdate(id, { status: "Rejected" });
-    res.json({ message: "Request Rejected" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error rejecting request" });
-  }
-});
-
-// ======================================================
-// DONATION CENTERS (ADMIN CRUD)
-// ======================================================
-app.post("/center/add", async (req, res) => {
-  try {
-    const newCenter = new DonationCenterModel(req.body);
-    await newCenter.save();
-    res.json({ message: "Center added" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-// GET all donation centers
-app.get("/api/donation-centers", async (req, res) => {
-  try {
-    const centers = await DonationCenterModel.find();
-    res.json(centers);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+    const { id, status } = req.body;
+    const request = await RequestModel.findById(id);
+    if (!request) return res.status(404).json({ message: "Request not found" });
 
 // ======================================================
 // ELIGIBILITY TERMS — PUBLIC LIST
@@ -363,88 +325,23 @@ app.delete("/api/eligibility-terms/:id", async (req, res) => {
     res.status(500).json({ message: "Error deleting term" });
   }
 });
+    const prevStatus = request.status;
+    request.status = status;
+    await request.save();
 
-// ======================================================
-// DONATION — CREATE
-// ======================================================
-app.post("/donation/create", async (req, res) => {
-  try {
-    console.log("/donation/create payload:", req.body);
-    const {
-      donorEmail,
-      donorName,
-      bloodType,
-      donationType,
-      hospitalLocation,
-      feelingWell,
-      healthChanges,
-      medication,
-      chronicIllness,
-      traveledRecent,
-    } = req.body;
-
-    if (
-      !donorEmail ||
-      !bloodType ||
-      !donationType ||
-      !feelingWell ||
-      !healthChanges ||
-      !medication ||
-      !chronicIllness
-    ) {
-      return res.status(400).json({
-        message: "Missing required fields",
-        received: {
-          donorEmail,
-          bloodType,
-          donationType,
-          feelingWell,
-          healthChanges,
-          medication,
-          chronicIllness,
-        },
-      });
+    // Increment cachedLivesSaved if status changed to Completed
+    if (prevStatus !== "Completed" && status === "Completed") {
+      cachedLivesSaved += 1;
     }
 
-    const donation = new DonationModel({
-      donorEmail,
-      donorName,
-      bloodType,
-      donationType,
-      hospitalLocation,
-      feelingWell,
-      healthChanges,
-      medication,
-      chronicIllness,
-      traveledRecent,
-    });
-
-    const saved = await donation.save();
-    console.log("Donation saved with id:", saved._id);
-    res.status(200).json({ message: "Donation submitted", donationId: saved._id });
+    res.json({ message: "Request status updated", livesSaved: cachedLivesSaved });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Error updating request status" });
   }
 });
 
-// ======================================================
-// DONATION — MINE (by donorEmail)
-// ======================================================
-app.post("/donation/mine", async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ message: "Email required" });
 
-    const mine = await DonationModel.find({ donorEmail: email }).sort({
-      createdAt: -1,
-    });
-    res.status(200).json(mine);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");
