@@ -10,6 +10,7 @@ import UserModel from "./models/UserModel.js";
 import RequestModel from "./models/RequestModel.js";
 import DonationCenterModel from "./models/DonationCenterModel.js";
 import DonationModel from "./models/DonationModel.js";
+import EligibilityTerm from "./models/EligibilityTerm.js";
 
 const app = express();
 app.use(cors());
@@ -305,6 +306,63 @@ app.get("/api/donation-centers", async (req, res) => {
   }
 });
 
+// ======================================================
+// ELIGIBILITY TERMS — PUBLIC LIST
+// ======================================================
+app.get("/api/eligibility-terms", async (req, res) => {
+  try {
+    const terms = await EligibilityTerm.find({ active: true }).sort({ order: 1, createdAt: 1 });
+    res.json(terms);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching eligibility terms" });
+  }
+});
+
+// ======================================================
+// ELIGIBILITY TERMS — ADMIN CRUD (no auth yet)
+// ======================================================
+app.post("/api/eligibility-terms", async (req, res) => {
+  try {
+    const { title, description, category, order, active } = req.body;
+    if (!title) return res.status(400).json({ message: "Title is required" });
+    const term = new EligibilityTerm({ title, description, category, order, active });
+    await term.save();
+    res.status(201).json(term);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error creating eligibility term" });
+  }
+});
+
+app.put("/api/eligibility-terms/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, category, order, active } = req.body;
+    const updated = await EligibilityTerm.findByIdAndUpdate(
+      id,
+      { $set: { title, description, category, order, active } },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ message: "Term not found" });
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error updating term" });
+  }
+});
+
+app.delete("/api/eligibility-terms/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const removed = await EligibilityTerm.findByIdAndDelete(id);
+    if (!removed) return res.status(404).json({ message: "Term not found" });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error deleting term" });
+  }
+});
 
 // ======================================================
 // DONATION — CREATE
