@@ -16,6 +16,7 @@ import EligibilityTerms from './components/EligibilityTerms.js';
 import Admin from './components/Admin.js';
 import AddCenter from './components/AddCenter.js';
 import CompatibleRequests from './components/CompatibleRequests.js';
+import ProtectedAdmin from './components/ProtectedAdmin.js';
 
 function AppContent() {
   const location = useLocation();
@@ -41,8 +42,8 @@ function AppContent() {
           <Route path="/info" element={<EligibilityTerms />} />
           <Route path="/UserProfile" element={<User />} />
           <Route path="/AboutUs" element={<AboutUs />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/add-center" element={<AddCenter />} />
+          <Route path="/admin" element={<ProtectedAdmin><Admin /></ProtectedAdmin>} />
+          <Route path="/add-center" element={<ProtectedAdmin><AddCenter /></ProtectedAdmin>} />
           <Route path="/compatibleRequests" element={<CompatibleRequests />} />
         </Routes>
       </Row>
