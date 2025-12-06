@@ -1,8 +1,10 @@
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { updateProfile, getProfile } from '../features/UserSlice';
 
 const User = () => {
+    const dispatch = useDispatch();
     const user = useSelector((state)=>state.users.user);
     const [donations, setDonations] = useState([]);
     // Next eligible donation logic based on last donation type
@@ -33,10 +35,9 @@ const User = () => {
         return { date: next, daysLeft, type: last.donationType };
     };
     const [requests, setRequests] = useState([]);
-    const [reqType, setReqType] = useState('');
-    const [reqLocation, setReqLocation] = useState('');
-    const [reqUnits, setReqUnits] = useState('');
-    const [reqPhone, setReqPhone] = useState('');
+    const [requestSort, setRequestSort] = useState(() => {
+        try { return localStorage.getItem('profile.requestSort') || 'date_desc'; } catch { return 'date_desc'; }
+    });
     const fullName = user?.fullName || user?.uname || "Guest";
     const bloodType = user?.bloodType || 'Unknown';
     const dobRaw = user?.dob || user?.dateOfBirth || '';
@@ -51,20 +52,30 @@ const User = () => {
     const [donationSort, setDonationSort] = useState(() => {
         try { return localStorage.getItem('profile.donationSort') || 'date_desc'; } catch { return 'date_desc'; }
     });
+    const [saveMessage, setSaveMessage] = useState('');
 
-    useEffect(() => {
-        const email = user?.email;
-        if (!email) return;
+    const fetchDonations = (email) => {
         axios.post('http://localhost:5000/donation/mine', { email })
             .then(res => setDonations(res.data || []))
             .catch(() => setDonations([]));
-        // hydrate local edits if present
+    };
+    const fetchRequests = (email) => {
+        axios.post('http://localhost:5000/request/mine', { email })
+            .then(res => setRequests(Array.isArray(res.data) ? res.data : []))
+            .catch(() => setRequests([]));
+    };
+    useEffect(() => {
+        const email = user?.email;
+        if (!email) return;
+        fetchDonations(email);
+        fetchRequests(email);
+        // hydrate local edits if present (scoped per user)
         try {
             const savedName = localStorage.getItem('profile.displayName');
-            const savedPic = localStorage.getItem('profile.profileUrl');
+            const savedPic = localStorage.getItem(`profile.${email}.profileUrl`); // per-user only
             const savedBlood = localStorage.getItem('profile.bloodType');
-            const savedDob = localStorage.getItem('profile.dob');
-            const savedPhone = localStorage.getItem('profile.phone');
+            const savedDob = localStorage.getItem(`profile.${email}.dob`);
+            const savedPhone = localStorage.getItem(`profile.${email}.phone`);
             const savedHealth = localStorage.getItem('profile.healthHistory');
             if (savedName) setDisplayName(savedName);
             if (savedPic) setProfileUrl(savedPic);
@@ -72,8 +83,58 @@ const User = () => {
             if (savedDob) setEditDob(savedDob);
             if (savedPhone) setEditPhone(savedPhone);
             if (savedHealth) setHealthHistory(savedHealth);
+            // remove legacy global avatar key to prevent cross-user leakage
+            try { localStorage.removeItem('profile.profileUrl'); } catch {}
         } catch {}
+        const onRequestCreated = () => {
+            if (user?.email) fetchRequests(user.email);
+        };
+        window.addEventListener('request-created', onRequestCreated);
+        const onVisibility = () => {
+            if (document.visibilityState === 'visible' && user?.email) {
+                fetchRequests(user.email);
+                fetchDonations(user.email);
+            }
+        };
+        document.addEventListener('visibilitychange', onVisibility);
+        return () => {
+            window.removeEventListener('request-created', onRequestCreated);
+            document.removeEventListener('visibilitychange', onVisibility);
+        };
     }, [user?.email]);
+
+    const handleSaveProfile = async () => {
+        if (!user?.email) return;
+        // Validate DOB age 17+
+        const today = new Date();
+        if (editDob) {
+            const d = new Date(editDob);
+            const age = today.getFullYear() - d.getFullYear() - ((today.getMonth() < d.getMonth() || (today.getMonth() === d.getMonth() && today.getDate() < d.getDate())) ? 1 : 0);
+            if (age < 17) {
+                setDobError('You must be at least 17 years old.');
+                return;
+            }
+        }
+        const payload = {
+            email: user.email,
+            fullName: displayName || user.fullName,
+            city: user.city || '',
+            bloodType: editBloodType || user.bloodType,
+            medicalHistory: healthHistory || '',
+            dob: editDob || user.dob || '',
+            gender: user.gender || '',
+        };
+        try {
+            await dispatch(updateProfile(payload)).unwrap();
+            await dispatch(getProfile(user.email));
+            try { window.dispatchEvent(new Event('profile-updated')); } catch {}
+            setSaveMessage('Details are saved.');
+            setTimeout(() => setSaveMessage(''), 3000);
+        } catch (e) {
+            setSaveMessage('Failed to save details.');
+            setTimeout(() => setSaveMessage(''), 3000);
+        }
+    };
 
     return (
         <div style={{ padding: '24px 16px', maxWidth: 1100, margin: '0 auto' }}>
@@ -115,7 +176,12 @@ const User = () => {
                                             const url = reader.result;
                                             if (typeof url === 'string') {
                                                 setProfileUrl(url);
-                                                try { localStorage.setItem('profile.profileUrl', url); } catch {}
+                                                try {
+                                                    const email = user?.email;
+                                                    if (email) {
+                                                        localStorage.setItem(`profile.${email}.profileUrl`, url);
+                                                    }
+                                                } catch {}
                                                 try { window.dispatchEvent(new Event('profile-updated')); } catch {}
                                             }
                                         };
@@ -145,7 +211,15 @@ const User = () => {
                                 <select
                                     className='auth-input'
                                     value={editBloodType}
-                                    onChange={(e)=>{ setEditBloodType(e.target.value); try { localStorage.setItem('profile.bloodType', e.target.value); } catch {} }}
+                                    onChange={(e)=>{ 
+                                        setEditBloodType(e.target.value); 
+                                        try { 
+                                            const email = user?.email; 
+                                            if (email) {
+                                                localStorage.setItem(`profile.${email}.bloodType`, e.target.value);
+                                            }
+                                        } catch {} 
+                                    }}
                                     style={{ width: '100%' }}
                                 >
                                     <option>O+</option>
@@ -181,7 +255,12 @@ const User = () => {
                                                         setDobError('You must be at least 17 years old.');
                                                     } else {
                                                         setDobError('');
-                                                        try { localStorage.setItem('profile.dob', val); } catch {}
+                                                        try {
+                                                            const email = user?.email;
+                                                            if (email) {
+                                                                localStorage.setItem(`profile.${email}.dob`, val);
+                                                            }
+                                                        } catch {}
                                                     }
                                                 }}
                                                 style={{ width: '100%', borderColor: dobError ? '#ef4444' : undefined }}
@@ -206,7 +285,12 @@ const User = () => {
                                     onChange={(e)=>{
                                         const digitsOnly = (e.target.value || '').replace(/\D+/g, '').slice(0,8);
                                         setEditPhone(digitsOnly);
-                                        try { localStorage.setItem('profile.phone', digitsOnly); } catch {}
+                                        try {
+                                            const email = user?.email;
+                                            if (email) {
+                                                localStorage.setItem(`profile.${email}.phone`, digitsOnly);
+                                            }
+                                        } catch {}
                                     }}
                                     style={{ width: '100%' }}
                                 />
@@ -229,6 +313,21 @@ const User = () => {
                                     return <span style={{ fontSize: 16 }}>{ne.date.toLocaleDateString()} • {ne.daysLeft ? `${ne.daysLeft} day(s) left` : 'Eligible now'}</span>;
                                 })()}
                             </div>
+                        </div>
+                        <div style={{ marginTop: 12 }}>
+                            <button
+                                onClick={handleSaveProfile}
+                                style={{
+                                    background: '#e4002b', color: '#fff', border: 'none', borderRadius: 8,
+                                    padding: '8px 14px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+                                }}
+                                disabled={!user?.email}
+                            >Save Profile</button>
+                            {saveMessage && (
+                                <span className='auth-label' style={{ marginLeft: 10, color: saveMessage.includes('Failed') ? '#B3261E' : '#065F46' }}>
+                                    {saveMessage}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -309,26 +408,77 @@ const User = () => {
             {/* Requests and Health side-by-side */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 30, alignItems: 'stretch' }}>
                 {/* My Blood Requests */}
-                <div className='auth-card' style={{ padding: 20, boxShadow: '0 6px 20px rgba(0,0,0,0.08)', borderRadius: 14, height: '100%' }}>
+                <div className='auth-card' style={{ padding: 20, boxShadow: '0 6px 20px rgba(0,0,0,0.08)', borderRadius: 14, height: '100%', overflow: 'hidden' }}>
                     <div className='auth-title' style={{ fontSize: 20, fontWeight: 700, color: '#6B0000', textAlign: 'center', marginBottom: 14 }}>My Blood Requests</div>
                     <p className='auth-label' style={{ textAlign: 'center', marginBottom: 16 }}>
                         Submitting requests is not available in the profile. This section only shows your request history.
                     </p>
                     <div style={{ marginTop: 10 }}>
-                        <div className='auth-title' style={{ fontSize: 15, marginBottom: 8 }}>History</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <div className='auth-title' style={{ fontSize: 15 }}>History</div>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                                <label className='auth-label' htmlFor='request-sort' style={{ color: '#6B7280' }}>Sort</label>
+                                <select
+                                    id='request-sort'
+                                    className='auth-input'
+                                    value={requestSort}
+                                    onChange={(e)=>{ setRequestSort(e.target.value); try { localStorage.setItem('profile.requestSort', e.target.value); } catch {} }}
+                                    style={{ maxWidth: 200, paddingRight: 28, background: '#F9FAFB', borderColor: '#E5E7EB' }}
+                                >
+                                    <option value='date_desc'>Newest first</option>
+                                    <option value='date_asc'>Oldest first</option>
+                                </select>
+                            </div>
+                        </div>
                         {requests.length === 0 ? (
                             <p className='auth-label'>No requests yet.</p>
                         ) : (
                             <div>
-                                {requests.map((r, idx) => (
-                                    <div key={r.id} style={{ border: '1px solid #E5E7EB', borderRadius: 12, padding: 12, marginBottom: 10, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center' }}>
-                                            <span className='auth-label'>Type: {r.type} • Hospital: {r.location} • Units: {r.units} • Phone: {r.phone}</span>
-                                            <span className='auth-label' style={{ whiteSpace: 'nowrap' }}>Date: {new Date(r.createdAt).toLocaleDateString()} • Time: {new Date(r.createdAt).toLocaleTimeString()}</span>
+                                {[...requests].sort((a,b)=>{
+                                    const da = a.neededDate ? new Date(a.neededDate).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+                                    const db = b.neededDate ? new Date(b.neededDate).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+                                    switch (requestSort) {
+                                        case 'date_asc': return da - db;
+                                        case 'date_desc':
+                                        default: return db - da;
+                                    }
+                                }).map((r, idx) => {
+                                    const rel = (r.relationship || '').toLowerCase();
+                                    const mode = (r.mode || '').toLowerCase();
+                                    const isSelf = mode === 'self' || rel === 'self';
+                                    return (
+                                        <div key={r._id || idx} style={{ border: '1px solid #E5E7EB', borderRadius: 12, padding: 14, marginBottom: 12, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', columnGap: 12, width: '100%' }}>
+                                                <span style={{
+                                                    display: 'inline-block',
+                                                    padding: '4px 10px',
+                                                    borderRadius: 999,
+                                                    background: isSelf ? '#E6FFFA' : '#F3F4F6',
+                                                    border: '1px solid ' + (isSelf ? '#81E6D9' : '#E5E7EB'),
+                                                    color: isSelf ? '#055C5C' : '#374151',
+                                                    fontSize: 12,
+                                                    whiteSpace: 'nowrap'
+                                                }}>
+                                                    {isSelf ? 'Self' : 'Someone Else'}
+                                                </span>
+                                                <div className='auth-label' style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, alignItems: 'center', overflowWrap: 'anywhere' }}>
+                                                    <span style={{ wordBreak: 'break-word' }}>Blood Type: <strong>{r.bloodType || '—'}</strong></span>
+                                                    <span style={{ wordBreak: 'break-word' }}>Hospital: <strong>{r.hospital || '—'}</strong></span>
+                                                    <span style={{ wordBreak: 'break-word' }}>Units: <strong>{r.bloodUnits ?? '—'}</strong></span>
+                                                    <span style={{ wordBreak: 'break-word' }}>Relation: <strong>{r.relationship || (isSelf ? 'Self' : 'Someone Else')}</strong></span>
+                                                </div>
+                                                <span className='auth-label' style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Needed: {r.neededDate ? new Date(r.neededDate).toLocaleDateString() : '—'}</span>
+                                            </div>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', marginTop: 8, width: '100%' }}>
+                                                <span className='auth-label' style={{ wordBreak: 'break-word' }}>Status: <strong>{r.status || 'Submitted'}</strong></span>
+                                                {r.mode && (
+                                                    <span className='auth-label' style={{ whiteSpace: 'nowrap' }}>Mode: <strong>{r.mode}</strong></span>
+                                                )}
+                                            </div>
+                                            {idx < requests.length - 1 && (<div style={{ marginTop: 10, borderTop: '1px solid #eee' }} />)}
                                         </div>
-                                        {idx < requests.length - 1 && (<div style={{ marginTop: 10, borderTop: '1px solid #eee' }} />)}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

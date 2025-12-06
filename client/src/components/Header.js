@@ -31,14 +31,16 @@ const Header = () => {
     const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
     useEffect(() => {
+        const email = user?.email || '';
+        const key = email ? `profile.${email}.profileUrl` : null;
         try {
-            const savedPic = localStorage.getItem('profile.profileUrl');
+            const savedPic = key ? localStorage.getItem(key) : null;
             if (savedPic) setProfileUrl(savedPic);
             else setProfileUrl('');
         } catch {}
         const onProfileUpdated = () => {
             try {
-                const updatedPic = localStorage.getItem('profile.profileUrl');
+                const updatedPic = key ? localStorage.getItem(key) : null;
                 setProfileUrl(updatedPic || '');
             } catch {}
         };
@@ -82,11 +84,11 @@ const Header = () => {
 
                     <NavItem>
                         <Link to="/UserProfile" style={{ ...styles.icon, display: 'flex', alignItems: 'center' }}>
-                            {profileUrl ? (
-                                <img src={profileUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 6px rgba(0,0,0,0.15)', border: '2px solid #fff' }} />
-                            ) : (
-                                <FaUserAlt />
-                            )}
+                            <img
+                                src={profileUrl || defPic}
+                                alt="avatar"
+                                style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 6px rgba(0,0,0,0.15)', border: '2px solid #fff' }}
+                            />
                         </Link>
                     </NavItem>
 
