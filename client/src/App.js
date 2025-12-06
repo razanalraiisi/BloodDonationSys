@@ -15,6 +15,7 @@ import LandingPage from './components/LandingPage.js';
 import EligibilityTerms from './components/EligibilityTerms.js';
 import Admin from './components/Admin.js';
 import AddCenter from './components/AddCenter.js';
+import CompatibleRequests from './components/CompatibleRequests.js';
 
 function AppContent() {
   const location = useLocation();
@@ -42,6 +43,7 @@ function AppContent() {
           <Route path="/AboutUs" element={<AboutUs />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/add-center" element={<AddCenter />} />
+          <Route path="/compatibleRequests" element={<CompatibleRequests />} />
         </Routes>
       </Row>
 

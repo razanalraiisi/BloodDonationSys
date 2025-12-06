@@ -72,7 +72,7 @@ const Header = () => {
 
                         <DropdownMenu>
                             <DropdownItem style={styles.link} tag={Link} to="/request">Request Blood</DropdownItem>
-                            <DropdownItem style={styles.link} tag={Link} to="/donate">Donate Blood</DropdownItem>
+                            <DropdownItem style={styles.link} tag={Link} to="/compatibleRequests">Compatible Blood Request</DropdownItem>
                             <DropdownItem style={styles.link}tag={Link} to="/centers">Donation Centers</DropdownItem>
                             <DropdownItem style={styles.link} tag={Link} to="/info">Eligibility & Terms</DropdownItem>
                         </DropdownMenu>

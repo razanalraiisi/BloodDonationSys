@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Alert } from 'reactstrap';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getProfile } from '../features/UserSlice';
 import { FormGroup, Label, Button } from 'reactstrap';
 import Logo from '../assets/logo.jpeg';
@@ -10,6 +10,7 @@ import Logo from '../assets/logo.jpeg';
 const DonateBlood = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const user = useSelector((state) => state.users.user);
     const donorName = user?.fullName || user?.uname || 'Guest';
     // Prefer Redux user blood type; fall back to per-user localStorage if present
@@ -52,9 +53,9 @@ const DonateBlood = () => {
 
     const [donationType, setDonationType] = useState('');
 
-    const [hospitalLocation, setHospitalLocation] = useState('');
+    const [hospitalLocation, setHospitalLocation] = useState(location.state?.hospitalName || '');
     const [centers, setCenters] = useState([]);
-    const [hospitalFileNumber, setHospitalFileNumber] = useState('');
+    const [hospitalFileNumber, setHospitalFileNumber] = useState(location.state?.hospitalFileNumber || '');
 
     const [donationError, setDonationError] = useState('');
     const [donationSuccess, setDonationSuccess] = useState('');
