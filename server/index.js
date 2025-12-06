@@ -427,6 +427,52 @@ app.get("/donation/all", async (req, res) => {
   }
 });
 
+// -----------------------------
+// COMPATIBLE BLOOD REQUESTS FOR LOGGED-IN USER
+// -----------------------------
+
+app.post("/request/compatible", async (req, res) => {
+  try {
+    const { email, bloodType } = req.body;
+    if (!email || !bloodType)
+      return res.status(400).json({ message: "Email and blood type required" });
+
+    const allRequests = await RequestModel.find({ status: { $in: ["Pending", "Approved"] } });
+
+    // Blood compatibility mapping (case-insensitive)
+    const bloodCompatibility = {
+      "o+": ["o+", "a+", "b+", "ab+"],
+      "o-": ["o+", "o-", "a+", "a-", "b+", "b-", "ab+", "ab-"],
+      "a+": ["a+", "ab+"],
+      "a-": ["a+", "a-", "ab+", "ab-"],
+      "b+": ["b+", "ab+"],
+      "b-": ["b+", "b-", "ab+", "ab-"],
+      "ab+": ["ab+"],
+      "ab-": ["ab+", "ab-"],
+    };
+
+    const userBlood = bloodType.trim().toLowerCase();
+
+    const compatibleRequests = allRequests
+      .filter(r => r.userEmail.toLowerCase() !== email.toLowerCase())
+      .filter(r => {
+        const reqBlood = (r.bloodType || "").trim().toLowerCase();
+        return bloodCompatibility[userBlood]?.includes(reqBlood);
+      });
+
+    // Sort by urgency: Critical > Urgent > Normal
+    const urgencyOrder = { critical: 1, urgent: 2, normal: 3 };
+    compatibleRequests.sort((a, b) => 
+      (urgencyOrder[(a.urgency || "Normal").toLowerCase()] || 4) -
+      (urgencyOrder[(b.urgency || "Normal").toLowerCase()] || 4)
+    );
+
+    res.json(compatibleRequests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching compatible requests" });
+  }
+});
 
 
 app.listen(5000, () => console.log("Server running on port 5000"));
