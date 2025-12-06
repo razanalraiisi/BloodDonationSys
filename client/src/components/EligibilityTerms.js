@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import Logo from '../assets/logo.jpeg';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const Card = ({ title, children, icon }) => {
   const [hover, setHover] = useState(false);
@@ -50,6 +51,27 @@ const Card = ({ title, children, icon }) => {
 
 const EligibilityTerms = () => {
   const navigate = useNavigate();
+  const [terms, setTerms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(()=>{
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/eligibility-terms');
+        const items = Array.isArray(res.data) ? res.data : [];
+        const activeSorted = items.filter(t=>t.active).sort((a,b)=> (a.order||0) - (b.order||0));
+        if (mounted) setTerms(activeSorted);
+      } catch (e) {
+        if (mounted) setError('Unable to load terms right now.');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return ()=>{ mounted = false; };
+  }, []);
+
   return (
     <div className="auth-page" style={{ position: 'relative' }}>
       {/* Soft background shape */}
@@ -83,44 +105,24 @@ const EligibilityTerms = () => {
           Please review these guidelines before attempting to donate.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 16, rowGap: 24 }}>
-          <Card title="Eligibility Checklist" icon="✅">
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              <li>You are feeling well today.</li>
-              <li>No recent health changes since your last donation.</li>
-              <li>You are not currently taking any medication.</li>
-              <li>You do not have chronic illnesses that prevent donation.</li>
-            </ul>
-          </Card>
-
-          <Card title="Minimum Intervals" icon="⏱️">
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              <li><strong>Whole Blood:</strong> 56 days (8 weeks)</li>
-              <li><strong>Platelets:</strong> 7 days</li>
-              <li><strong>Plasma:</strong> 28 days</li>
-              <li><strong>Double Red Cells:</strong> 112 days (16 weeks)</li>
-            </ul>
-            <p className="auth-help" style={{ marginTop: 8 }}>
-              If you try to donate earlier, the Donate form will show your next eligible date and block submission.
-            </p>
-          </Card>
-
-          <Card title="ID, Age & Safety" icon="🩺">
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              <li>Bring a valid ID on donation day.</li>
-              <li>Meet the minimum age and weight per local regulations.</li>
-              <li>Hydrate well and have a light meal before donating.</li>
-            </ul>
-          </Card>
-
-          <Card title="Terms & Consent" icon="📄">
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              <li>Provide accurate information about your health history.</li>
-              <li>Your data is used to provide services and ensure safety.</li>
-              <li>By donating, you consent to standard screening and processing.</li>
-            </ul>
-          </Card>
-        </div>
+        {loading ? (
+          <p className="auth-label" style={{ textAlign: 'center' }}>Loading terms…</p>
+        ) : error ? (
+          <p className="auth-label" style={{ textAlign: 'center', color: '#B3261E' }}>{error}</p>
+        ) : terms.length === 0 ? (
+          <p className="auth-label" style={{ textAlign: 'center' }}>No terms available.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 16, rowGap: 24 }}>
+            {terms.map((t)=> (
+              <Card key={t._id} title={t.title} icon="📄">
+                <div style={{ whiteSpace: 'pre-wrap' }}>{t.description}</div>
+                <div className="auth-help" style={{ marginTop: 8, color: '#6B7280' }}>
+                  {t.category ? `Category: ${t.category}` : ''}
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
 
         <div className="auth-actions" style={{ display: 'flex', justifyContent: 'center', marginTop: 28, paddingTop: 10 }}>
           <Link className="auth-btn-primary" to="/donate">Go to Donate</Link>
