@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FormGroup, Label, Button } from "reactstrap";
 import axios from "axios";
+import { useSelector } from 'react-redux';
 
 const RequestBlood = () => {
 
   const [mode, setMode] = useState("self");
+  const user = useSelector((state) => state.users.user);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+    // Prefill email from logged-in user
+    useEffect(() => {
+      if (user?.email) setEmail(user.email);
+    }, [user?.email]);
   const [patientId, setPatientId] = useState("");
   const [hospitalFileNumber, setHospitalFileNumber] = useState("");
   const [relationship, setRelationship] = useState("");
@@ -30,7 +36,7 @@ const RequestBlood = () => {
     try {
       const formData = new FormData();
 
-      formData.append("userEmail", email);
+      formData.append("userEmail", email || user?.email || "");
       formData.append("patientName", fullName);
       formData.append("patientId", patientId);
       formData.append("hospitalFileNumber", hospitalFileNumber);
@@ -54,6 +60,7 @@ const RequestBlood = () => {
       });
 
       setMessage("Request submitted successfully.");
+      try { window.dispatchEvent(new Event('request-created')); } catch {}
 
       // Clear all inputs
       setFullName("");

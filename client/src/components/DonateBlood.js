@@ -12,7 +12,19 @@ const DonateBlood = () => {
     const navigate = useNavigate();
     const user = useSelector((state) => state.users.user);
     const donorName = user?.fullName || user?.uname || 'Guest';
-    const donorBloodType = user?.bloodType || 'Unknown';
+    // Prefer Redux user blood type; fall back to per-user localStorage if present
+    const donorBloodType = (() => {
+        const bt = user?.bloodType;
+        if (bt) return bt;
+        try {
+            const email = user?.email || localStorage.getItem('userEmail');
+            if (email) {
+                const saved = localStorage.getItem(`profile.${email}.bloodType`);
+                if (saved) return saved;
+            }
+        } catch {}
+        return 'Unknown';
+    })();
 
     useEffect(() => {
         // If we have a logged-in user but missing fields, refresh from DB

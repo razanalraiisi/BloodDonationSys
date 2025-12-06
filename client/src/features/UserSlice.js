@@ -51,6 +51,22 @@ export const getProfile = createAsyncThunk(
   }
 );
 
+// Update user profile fields (name, city, bloodType, dob, etc.)
+export const updateProfile = createAsyncThunk(
+  "users/updateProfile",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const response = await axios.post("http://localhost:5000/updateProfile", payload);
+      return response.data; // { message: "Profile updated" }
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        return rejectWithValue(error.response.data.message);
+      }
+      return rejectWithValue("Failed to update profile.");
+    }
+  }
+);
+
 const initialState = {
   user: null,
   message: "",
@@ -136,6 +152,25 @@ export const UserSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload || "Failed to load profile.";
+      });
+
+    // Update profile
+    builder
+      .addCase(updateProfile.pending, (state) => {
+        state.isLoading = true;
+        state.isError = false;
+        state.message = "";
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        // Keep existing user; caller should refresh via getProfile
+        state.message = "Profile updated";
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload || "Failed to update profile.";
       });
   },
 });
