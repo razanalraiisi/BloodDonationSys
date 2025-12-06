@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Row, Col, Card, CardBody, Button } from "reactstrap";
-import { FaHospital, FaFileAlt, FaTint, FaExclamationTriangle, FaHeart, FaClock, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
+import { FaHospital, FaFileAlt, FaTint, FaExclamationTriangle, FaHeart, FaClock, FaPhone, FaMapMarkerAlt, FaHome } from "react-icons/fa";
 import Map from "./Map";
 import BloodBag from "../assets/BloodBag.png";
 import Hospital from "../assets/Hospital.png";
@@ -35,6 +35,28 @@ const DonationCenter = () => {
 
   return (
     <>
+      <div style={{ marginBottom: 16, paddingLeft: 10 }}>
+        <button
+          onClick={() => navigate('/home')}
+          title='Go to Home'
+          style={{
+            background: '#B3261E',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 50,
+            width: 40,
+            height: 40,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: 20,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          }}
+        >
+          <FaHome />
+        </button>
+      </div>
       <Row className="text-center justify-content-center mb-4" style={{ padding: '10px 0' }}>
         <Col md="8">
           <h3 style={{ color: "#B3261E", marginBottom: "5px" }}>Find a Donation Center Near You</h3>
@@ -114,7 +136,7 @@ const DonationCenter = () => {
                       <Button
                         size="sm"
                         style={{ width: "100%", backgroundColor:'#B3261E', color:'#fff', borderRadius: '10px', border: 'none', fontWeight: 'bold' }}
-                        onClick={() => navigate(`/donate`, { state: { hospitalName: request.hospital, hospitalFileNumber: request.hospitalFileNumber } })}
+                        onClick={() => navigate(`/donate`, { state: { hospitalName: request.hospital, hospitalFileNumber: request.hospitalFileNumber, requestId: request._id } })}
                       >
                         <FaHeart style={{ marginRight: "8px" }} /> Donate Now
                       </Button>
