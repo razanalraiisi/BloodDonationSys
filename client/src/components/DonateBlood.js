@@ -53,6 +53,8 @@ const DonateBlood = () => {
     const [donationType, setDonationType] = useState('');
 
     const [hospitalLocation, setHospitalLocation] = useState('');
+    const [centers, setCenters] = useState([]);
+    const [hospitalFileNumber, setHospitalFileNumber] = useState('');
 
     const [donationError, setDonationError] = useState('');
     const [donationSuccess, setDonationSuccess] = useState('');
@@ -100,6 +102,16 @@ const DonateBlood = () => {
             .catch(() => setEligibility({ eligibleNow: true, nextDate: null, daysLeft: 0, lastType: null }));
     }, [user?.email]);
 
+    // Load donation centers from server for hospital dropdown
+    useEffect(() => {
+        axios.get('http://localhost:5000/api/donation-centers')
+            .then(res => {
+                const list = Array.isArray(res.data) ? res.data : [];
+                setCenters(list);
+            })
+            .catch(() => setCenters([]));
+    }, []);
+
     const validate = () => {
         const errs = {};
         if (!feelingWell) errs.feelingWell = 'Please select Yes or No.';
@@ -108,6 +120,7 @@ const DonateBlood = () => {
         if (!chronicIllness) errs.chronicIllness = 'Please select Yes or No.';
         if (!donationType) errs.donationType = 'Please select a donation type.';
         if (!hospitalLocation.trim()) errs.hospitalLocation = 'Please enter a preferred location.';
+        if (!hospitalFileNumber.trim()) errs.hospitalFileNumber = 'Please enter the hospital file number.';
         return errs;
     };
 
@@ -149,6 +162,7 @@ const DonateBlood = () => {
             bloodType: donorBloodType,
             donationType,
             hospitalLocation,
+            hospitalFileNumber,
             feelingWell,
             healthChanges,
             medication,
@@ -208,11 +222,27 @@ const DonateBlood = () => {
                         {donorBloodType}
                     </span>
                 </p>
+                {/* Info link directly under donor name */}
+                <p className='auth-label' style={{ textAlign: 'center', marginBottom: 12 }}>
+                    See <a href='/info' style={{ color: '#B3261E', textDecoration: 'underline' }}>Eligibility & Terms</a> before you donate.
+                </p>
                 {!user?.email && (
                     <Alert color="warning" className='mb-3'>
                         Please log in before submitting a donation.
                     </Alert>
                 )}
+                {/* Hospital File Number directly under donor name */}
+                <FormGroup className='mb-3'>
+                    <Label className='auth-label'>Hospital File Number</Label>
+                    <input
+                        className='auth-input'
+                        type='text'
+                        value={hospitalFileNumber}
+                        onChange={(e)=>setHospitalFileNumber(e.target.value)}
+                        placeholder='e.g., HFN-123456'
+                    />
+                    {errors.hospitalFileNumber && <p className='auth-help' style={{ color: '#B3261E' }}>{errors.hospitalFileNumber}</p>}
+                </FormGroup>
                 {donationError && (
                     <Alert color="danger" className='mb-3'>
                         {donationError}
@@ -223,9 +253,6 @@ const DonateBlood = () => {
                         {donationSuccess}
                     </Alert>
                 )}
-                <p className='auth-label' style={{ textAlign: 'center', marginBottom: 12 }}>
-                    See <a href='/info' style={{ color: '#B3261E', textDecoration: 'underline' }}>Eligibility & Terms</a> before you donate.
-                </p>
                 {!eligibility.eligibleNow && eligibility.nextDate && (
                     <Alert color="warning" className='mb-3'>
                         You are not eligible to donate yet. Next eligible date ({eligibility.lastType}): {eligibility.nextDate.toLocaleDateString()} {eligibility.daysLeft ? `• ${eligibility.daysLeft} day(s) left` : ''}
@@ -313,16 +340,22 @@ const DonateBlood = () => {
                     </FormGroup>
 
 
-                    {/* 3. Preferred Hospital / Location */}
+                    {/* 3. Preferred Hospital / Location (from donation centers) */}
                     <FormGroup className='mb-3'>
                         <Label className='auth-label'>Preferred Hospital / Location</Label>
-                        <input
+                        <select
                             className='auth-input'
-                            type='text'
                             value={hospitalLocation}
                             onChange={(e)=>setHospitalLocation(e.target.value)}
-                            placeholder='Enter hospital or donation location'
-                        />
+                            style={{ width: '100%' }}
+                        >
+                            <option value=''>Select a center</option>
+                            {centers.map((c) => (
+                                <option key={c._id} value={c.name || c.hospital || ''}>
+                                    {c.name || c.hospital || 'Unnamed Center'}
+                                </option>
+                            ))}
+                        </select>
                         {errors.hospitalLocation && <p className='auth-help' style={{ color: '#B3261E' }}>{errors.hospitalLocation}</p>}
                     </FormGroup>
 
@@ -334,7 +367,7 @@ const DonateBlood = () => {
                                 isSubmitting ||
                                 !user?.email ||
                                 !feelingWell || !healthChanges || !medication || !chronicIllness ||
-                                !donationType || !hospitalLocation.trim() ||
+                                !donationType || !hospitalLocation.trim() || !hospitalFileNumber.trim() ||
                                 (!eligibility.eligibleNow && !!eligibility.nextDate)
                             }
                         >
