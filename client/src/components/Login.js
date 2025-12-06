@@ -14,7 +14,7 @@ const Login = () => {
   const user = useSelector((state) => state.users.user);
   const isSuccess = useSelector((state) => state.users.isSuccess);
   const isError = useSelector((state) => state.users.isError);
-  const errorMsg = useSelector((state) => state.users.errorMsg); // must exist in your slice
+  const errorMsg = useSelector((state) => state.users.errorMsg); 
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,19 +30,19 @@ const Login = () => {
   });
 
   const onValid = async (data) => {
-    // Frontend Yup validation passed, now dispatch backend login
+    
     try {
       await dispatch(getUser(data)).unwrap();
-      // if success, redirect handled in useEffect
+      
     } catch (err) {
-      // Backend returned error (wrong email or password)
+      
       setTopAlerts([err?.message || "Email or password is incorrect."]);
       setTimeout(() => setTopAlerts([]), 4000);
     }
   };
 
   const onInvalid = (formErrors) => {
-    // Show all validation errors
+    
     const messages = Object.values(formErrors).map(err => err.message);
     setTopAlerts(messages);
     setTimeout(() => setTopAlerts([]), 4000);
@@ -65,13 +65,13 @@ const Login = () => {
 
         {showRegisteredMsg && (
           <Alert color="success" toggle={() => setShowRegisteredMsg(false)}>
-            🎉 You have successfully registered. Please sign in.
+             You have successfully registered. Please sign in.
           </Alert>
         )}
 
         {topAlerts.length > 0 && (
           <Alert color="danger" style={{ fontWeight: 'bold', background: '#ffe6e6', borderColor: '#ff4d4d', color: '#b30000' }}>
-            ⚠️ Please check the following:
+             Please check the following:
             <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
               {topAlerts.map((msg, idx) => <li key={idx}>{msg}</li>)}
             </ul>
@@ -82,7 +82,7 @@ const Login = () => {
 
         <form onSubmit={handleSubmit(onValid, onInvalid)}>
 
-          {/* EMAIL FIELD */}
+          
           <FormGroup className="mb-3">
             <Label className="auth-label">Email</Label>
             <input
@@ -94,7 +94,7 @@ const Login = () => {
             />
           </FormGroup>
 
-          {/* PASSWORD FIELD */}
+          
           <FormGroup className="mb-2">
             <Label className="auth-label">Password</Label>
             <input
