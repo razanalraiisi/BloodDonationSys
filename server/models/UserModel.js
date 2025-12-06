@@ -11,6 +11,16 @@ const UserSchema = mongoose.Schema({
     gender: { type: String, required: true },
 
     medicalHistory: { type: String, default: "" },
+    medicalNotes: {
+        type: [
+            new mongoose.Schema({
+                _id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+                text: { type: String, required: true },
+                createdAt: { type: Date, default: Date.now }
+            }, { _id: false })
+        ],
+        default: []
+    },
     
 
     isAdmin: { type: Boolean, default: false }

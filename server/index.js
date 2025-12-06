@@ -65,6 +65,7 @@ app.post("/register", async (req, res) => {
       dob,
       city,
       medicalHistory: medicalHistory || "",
+      medicalNotes: medicalHistory ? [{ _id: new mongoose.Types.ObjectId().toString(), text: medicalHistory, createdAt: new Date() }] : [],
       gender,
     });
 
@@ -94,6 +95,21 @@ app.post("/login", async (req, res) => {
 });
 
 // -----------------------------
+// CHECK EMAIL EXISTS (for client-side validation)
+// -----------------------------
+app.get("/users/check-email/:email", async (req, res) => {
+  try {
+    const email = (req.params.email || "").trim().toLowerCase();
+    if (!email) return res.status(400).json({ exists: false });
+    const user = await UserModel.findOne({ email });
+    res.json({ exists: !!user });
+  } catch (err) {
+    console.error("[check-email] error", err);
+    res.status(500).json({ exists: false });
+  }
+});
+
+// -----------------------------
 // GET / UPDATE PROFILE
 // -----------------------------
 app.post("/profile", async (req, res) => {
@@ -116,6 +132,102 @@ app.post("/updateProfile", async (req, res) => {
     res.status(200).json({ message: "Profile updated" });
   } catch (err) {
     res.status(500).json({ message: "Error updating profile" });
+  }
+});
+
+// -----------------------------
+// HEALTH NOTES: delete only (adding disabled)
+// -----------------------------
+
+// Debug route: check user existence by email
+app.get("/debug/user/:email", async (req, res) => {
+  try {
+    const email = req.params.email;
+    const user = await UserModel.findOne({ email });
+    res.json({ exists: !!user });
+  } catch (e) {
+    res.status(500).json({ message: 'debug failed' });
+  }
+});
+
+app.delete("/profile/notes/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    let { email, text } = req.body;
+    email = typeof email === 'string' ? email.trim() : '';
+    text = typeof text === 'string' ? text.trim() : '';
+    if (!email) return res.status(400).json({ message: "Email required" });
+    if (!id && !text) return res.status(400).json({ message: "Note id or text required" });
+
+    console.log('[notes:delete] request', { email, id, text });
+
+    // Try deleting by _id first (exact email)
+    let updated = null;
+    if (id && id !== 'undefined') {
+      updated = await UserModel.findOneAndUpdate(
+        { email },
+        { $pull: { medicalNotes: { _id: id } } },
+        { new: true }
+      );
+      if (updated) console.log('[notes:delete] deleted by id for email');
+    }
+    // Fallback: case-insensitive email + delete by id
+    if (!updated && id && id !== 'undefined') {
+      updated = await UserModel.findOneAndUpdate(
+        { email: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        { $pull: { medicalNotes: { _id: id } } },
+        { new: true }
+      );
+      if (updated) console.log('[notes:delete] deleted by id (ci email)');
+    }
+    // Fallback: delete by text (exact email)
+    if (!updated && text) {
+      updated = await UserModel.findOneAndUpdate(
+        { email },
+        { $pull: { medicalNotes: { text } } },
+        { new: true }
+      );
+      if (updated) console.log('[notes:delete] deleted by text for email');
+    }
+    // Fallback: delete by text (ci email)
+    if (!updated && text) {
+      updated = await UserModel.findOneAndUpdate(
+        { email: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        { $pull: { medicalNotes: { text } } },
+        { new: true }
+      );
+      if (updated) console.log('[notes:delete] deleted by text (ci email)');
+    }
+
+    if (!updated) return res.status(404).json({ message: "User not found or note not found" });
+    res.json({ message: "Note deleted" });
+  } catch (err) {
+    console.error('[notes:delete] error', err);
+    res.status(500).json({ message: "Error deleting note" });
+  }
+});
+
+// Delete note by array index (fallback)
+app.delete("/profile/notes", async (req, res) => {
+  try {
+    let { email, index } = req.body;
+    email = typeof email === 'string' ? email.trim() : '';
+    index = typeof index === 'number' ? index : Number(index);
+    if (!email) return res.status(400).json({ message: "Email required" });
+    if (!Number.isInteger(index) || index < 0) return res.status(400).json({ message: "Valid index required" });
+
+    const user = await UserModel.findOne({ email }) || await UserModel.findOne({ email: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!Array.isArray(user.medicalNotes) || index >= user.medicalNotes.length) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    user.medicalNotes.splice(index, 1);
+    await user.save();
+    res.json({ message: "Note deleted" });
+  } catch (err) {
+    console.error('[notes:delete-index] error', err);
+    res.status(500).json({ message: "Error deleting note by index" });
   }
 });
 
@@ -391,6 +503,39 @@ app.delete("/api/eligibility-terms/:id", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error deleting term" });
+  }
+});
+
+// -----------------------------
+// DELETE MEDICAL REPORT ATTACHMENT (User-owned)
+// -----------------------------
+app.delete("/request/:id/attachment", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.body;
+    const request = await RequestModel.findById(id);
+    if (!request) return res.status(404).json({ message: "Request not found" });
+    if (!email || request.userEmail !== email) {
+      return res.status(403).json({ message: "Not authorized to delete this attachment" });
+    }
+
+    const path = request.medicalReportPath || "";
+    if (path) {
+      try {
+        const normalized = path.replace(/\\/g, "/");
+        const localPath = normalized.startsWith("uploads/") ? normalized : `uploads/${normalized}`;
+        if (fs.existsSync(localPath)) fs.unlinkSync(localPath);
+      } catch (e) {
+        console.warn("Failed to remove file:", e);
+      }
+    }
+
+    request.medicalReportPath = "";
+    await request.save();
+    res.json({ message: "Attachment deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error deleting attachment" });
   }
 });
 
