@@ -142,7 +142,11 @@ app.post("/request/create", upload.single("medicalReport"), async (req, res) => 
     if (!userEmail || !patientName || !bloodType || !hospital || !neededDate || !mode)
       return res.status(400).json({ message: "Missing required fields for request" });
 
-    const medicalReportPath = req.file ? req.file.path : "";
+    // ⭐ FIX: Ensure file path works on Windows & creates a valid URL
+    let medicalReportPath = "";
+    if (req.file) {
+      medicalReportPath = req.file.path.replace(/\\/g, "/");
+    }
 
     const newRequest = new RequestModel({
       userEmail,
@@ -156,7 +160,7 @@ app.post("/request/create", upload.single("medicalReport"), async (req, res) => 
       hospital,
       urgency,
       neededDate,
-      medicalReportPath,
+      medicalReportPath, // ⭐ use corrected path
       mode,
     });
 
@@ -167,6 +171,7 @@ app.post("/request/create", upload.single("medicalReport"), async (req, res) => 
     res.status(500).json({ message: "Server error creating request" });
   }
 });
+
 
 // -----------------------------
 // REQUEST STATUS UPDATE (Optimized Lives Saved)

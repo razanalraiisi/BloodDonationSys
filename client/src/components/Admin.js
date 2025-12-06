@@ -50,13 +50,14 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     loadDashboardStats();
-    const interval = setInterval(loadDashboardStats, 10000); // auto-refresh every 10 sec
+    const interval = setInterval(loadDashboardStats, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  
+  // ------------------ BLOOD REQUESTS ------------------
   const [requests, setRequests] = useState([]);
   const [search, setSearch] = useState("");
+
   const loadRequests = async () => {
     try {
       const res = await axios.get("http://localhost:5000/request/all");
@@ -65,7 +66,9 @@ const AdminDashboard = () => {
       console.log(err);
     }
   };
+
   useEffect(() => { loadRequests(); }, []);
+
   const filteredRequests = requests.filter((r) => {
     if (!search.trim()) return true;
     const term = search.toLowerCase();
@@ -79,9 +82,10 @@ const AdminDashboard = () => {
     );
   });
 
- 
+  // ------------------ DONATION REQUESTS ------------------
   const [donations, setDonations] = useState([]);
   const [donationSearch, setDonationSearch] = useState("");
+
   const loadDonations = async () => {
     try {
       const res = await axios.get("http://localhost:5000/donation/all");
@@ -90,7 +94,9 @@ const AdminDashboard = () => {
       console.log(err);
     }
   };
+
   useEffect(() => { loadDonations(); }, []);
+
   const filteredDonations = donations.filter((d) => {
     if (!donationSearch.trim()) return true;
     const term = donationSearch.toLowerCase();
@@ -104,7 +110,7 @@ const AdminDashboard = () => {
     );
   });
 
- 
+  // ------------------ ELIGIBILITY TERMS ------------------
   const [eligibilityTerms, setEligibilityTerms] = useState([]);
   const [termForm, setTermForm] = useState({ title: '', description: '', category: 'General', order: 1, active: true });
   const [termMsg, setTermMsg] = useState('');
@@ -118,6 +124,7 @@ const AdminDashboard = () => {
       setEligibilityTerms(items);
     } catch { setEligibilityTerms([]); }
   };
+
   useEffect(() => { loadTerms(); }, []);
 
   const getMaxOrder = () => eligibilityTerms.length + 1;
@@ -153,6 +160,7 @@ const AdminDashboard = () => {
     catch { setTermMsg('Delete failed'); }
   };
 
+  // ------------------ UI ------------------
   return (
     <Container fluid>
       <Navbar className="navigation" light expand="md" style={styles.navbar}>
@@ -162,33 +170,61 @@ const AdminDashboard = () => {
         </NavbarBrand>
 
         {user ? (
-          <Button onClick={handleLogout} style={{
-            backgroundColor: '#B3261E', borderColor: '#B3261E', color: '#fff',
-            display: 'flex', alignItems: 'center', gap: '5px', marginRight: '20px'
-          }}><FaSignOutAlt /> Logout</Button>
+          <Button
+            onClick={handleLogout}
+            style={{
+              backgroundColor: '#B3261E',
+              borderColor: '#B3261E',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              marginRight: '20px'
+            }}>
+            <FaSignOutAlt /> Logout
+          </Button>
         ) : (
-          <Link to="/login" style={{ color: '#B3261E', fontSize: '20px', marginRight: '20px' }}><FaSignInAlt /></Link>
+          <Link to="/login" style={{ color: '#B3261E', fontSize: '20px', marginRight: '20px' }}>
+            <FaSignInAlt />
+          </Link>
         )}
       </Navbar>
 
       <Row className="mt-4"><Col><h2 className="admin-title">Admin Dashboard</h2></Col></Row>
 
-     
+      {/* Sidebar */}
       <div style={{ position: 'fixed', top: 110, left: 20, width: 64, zIndex: 10 }}>
-        <div style={{ background: '#FFFFFF', borderRadius: 16, boxShadow: '0 8px 24px rgba(179,38,30,0.12)',
-                      padding: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-          <div className="sidebar-icon" onClick={()=>setActiveSection('dashboard')}
-               style={getSidebarStyle(activeSection==='dashboard')} title="Dashboard"><FaHome size={18} /></div>
-          <div className="sidebar-icon" onClick={()=>setActiveSection('eligibility')}
-               style={getSidebarStyle(activeSection==='eligibility')} title="Eligibility Terms"><FaFileAlt size={18} /></div>
-          <div className="sidebar-icon" onClick={()=>navigate("/add-center")}
-               style={getSidebarStyle(false)} title="Add Donation Center"><FaHospital size={18} /></div>
+        <div style={{
+          background: '#FFFFFF',
+          borderRadius: 16,
+          boxShadow: '0 8px 24px rgba(179,38,30,0.12)',
+          padding: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 10
+        }}>
+          <div className="sidebar-icon"
+               onClick={() => setActiveSection('dashboard')}
+               style={getSidebarStyle(activeSection === 'dashboard')}
+               title="Dashboard"><FaHome size={18} /></div>
+
+          <div className="sidebar-icon"
+               onClick={() => setActiveSection('eligibility')}
+               style={getSidebarStyle(activeSection === 'eligibility')}
+               title="Eligibility Terms"><FaFileAlt size={18} /></div>
+
+          <div className="sidebar-icon"
+               onClick={() => navigate("/add-center")}
+               style={getSidebarStyle(false)}
+               title="Add Donation Center"><FaHospital size={18} /></div>
         </div>
       </div>
 
-     
+      {/* ---------------- DASHBOARD SECTION ---------------- */}
       {activeSection === 'dashboard' && (
         <>
+          {/* Stats Cards */}
           <Row className="mt-4 justify-content-center">
             {[
               { label: "Active Donors", value: stats.activeDonors },
@@ -222,7 +258,7 @@ const AdminDashboard = () => {
             ))}
           </Row>
 
-          
+          {/* Blood Request Search */}
           <Row className="mt-4 justify-content-center">
             <Col md="4">
               <Input
@@ -234,19 +270,28 @@ const AdminDashboard = () => {
             </Col>
           </Row>
 
-          
+          {/* Blood Requests Table */}
           <Row className="mt-4 justify-content-center">
             <Col md="11">
               <Card className="info-card">
                 <CardBody>
                   <h4 className="admin-section-title">Blood Requests</h4>
+
                   <Table bordered responsive className="admin-table mt-3">
                     <thead>
                       <tr>
-                        <th>Patient Name</th><th>User Email</th><th>Blood</th><th>Hospital</th>
-                        <th>Urgency</th><th>Date Needed</th><th>Units</th><th>Status</th>
+                        <th>Patient Name</th>
+                        <th>User Email</th>
+                        <th>Blood</th>
+                        <th>Hospital</th>
+                        <th>Urgency</th>
+                        <th>Date Needed</th>
+                        <th>Units</th>
+                        <th>Medical Report</th> {/* NEW COLUMN */}
+                        <th>Status</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {filteredRequests.map((r) => (
                         <tr key={r._id}>
@@ -257,6 +302,28 @@ const AdminDashboard = () => {
                           <td>{r.urgency}</td>
                           <td>{r.neededDate}</td>
                           <td>{r.bloodUnits}</td>
+
+                          {/* ⭐ Medical Report Column */}
+                          <td>
+                            {r.medicalReportPath ? (
+                              <a
+                                href={`http://localhost:5000/${r.medicalReportPath}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  color: "#B3261E",
+                                  fontWeight: "600",
+                                  textDecoration: "underline",
+                                  cursor: "pointer"
+                                }}
+                              >
+                                View Report
+                              </a>
+                            ) : (
+                              <span style={{ color: "gray" }}>No File</span>
+                            )}
+                          </td>
+
                           <td>
                             <span
                               className={`badge px-2 py-1 ${r.status === "Completed" ? "bg-success" : "bg-warning text-dark"}`}
@@ -274,7 +341,7 @@ const AdminDashboard = () => {
             </Col>
           </Row>
 
-          
+          {/* Donation Search */}
           <Row className="mt-4 justify-content-center">
             <Col md="4">
               <Input
@@ -286,21 +353,31 @@ const AdminDashboard = () => {
             </Col>
           </Row>
 
-          
+          {/* Donation Requests Table */}
           <Row className="mt-4 justify-content-center">
             <Col md="11">
               <Card className="info-card">
                 <CardBody>
                   <h4 className="admin-section-title">Donation Requests</h4>
+
                   <Table bordered responsive className="admin-table mt-3">
                     <thead>
                       <tr>
-                        <th>Donor Name</th><th>Email</th><th>Blood Type</th><th>Donation Type</th>
-                        <th>Hospital</th><th>Feeling Well</th><th>Health Changes</th>
-                        <th>Medication</th><th>Chronic Illness</th><th>Traveled Recent</th><th>Date</th>
+                        <th>Donor Name</th>
+                        <th>Email</th>
+                        <th>Blood Type</th>
+                        <th>Donation Type</th>
+                        <th>Hospital</th>
+                        <th>Feeling Well</th>
+                        <th>Health Changes</th>
+                        <th>Medication</th>
+                        <th>Chronic Illness</th>
+                        <th>Traveled Recent</th>
+                        <th>Date</th>
                         <th>Status</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {filteredDonations.map((don) => (
                         <tr key={don._id}>
@@ -326,6 +403,7 @@ const AdminDashboard = () => {
                         </tr>
                       ))}
                     </tbody>
+
                   </Table>
                 </CardBody>
               </Card>
@@ -334,54 +412,92 @@ const AdminDashboard = () => {
         </>
       )}
 
-     
+      {/* ---------------- ELIGIBILITY TERMS SECTION ---------------- */}
       {activeSection === 'eligibility' && (
         <Card className="info-card">
           <CardBody>
             <h4 className="admin-section-title">Edit Eligibility Terms</h4>
-            {termMsg && (<div className='auth-label' style={{ color: termMsg.includes('failed') ? '#B3261E' : '#065F46' }}>{termMsg}</div>)}
+            {termMsg && (
+              <div className='auth-label' style={{ color: termMsg.includes('failed') ? '#B3261E' : '#065F46' }}>
+                {termMsg}
+              </div>
+            )}
+
             <Row>
               <Col md="6">
                 <h6 className="auth-title" style={{ marginBottom: 8 }}>Add New</h6>
                 <div>
                   <label className='auth-label'>Title</label>
-                  <Input value={termForm.title} onChange={(e)=>setTermForm({...termForm, title: e.target.value})} />
+                  <Input value={termForm.title} onChange={(e) => setTermForm({ ...termForm, title: e.target.value })} />
+
                   <label className='auth-label' style={{ marginTop: 8 }}>Description</label>
-                  <Input type="textarea" rows={4} value={termForm.description} onChange={(e)=>setTermForm({...termForm, description: e.target.value})} />
+                  <Input type="textarea" rows={4} value={termForm.description}
+                         onChange={(e) => setTermForm({ ...termForm, description: e.target.value })} />
+
                   <Row className='mt-2'>
                     <Col>
                       <label className='auth-label'>Category</label>
-                      <Input value={termForm.category} onChange={(e)=>setTermForm({...termForm, category: e.target.value})} />
+                      <Input value={termForm.category}
+                             onChange={(e) => setTermForm({ ...termForm, category: e.target.value })} />
                     </Col>
+
                     <Col>
                       <label className='auth-label'>Order</label>
-                      <Input type='number' value={termForm.order} min={1} max={getMaxOrder()} onChange={(e)=>setTermForm({...termForm, order: Number(e.target.value)||1})} />
+                      <Input type='number' value={termForm.order} min={1} max={getMaxOrder()}
+                             onChange={(e) => setTermForm({ ...termForm, order: Number(e.target.value) || 1 })} />
                     </Col>
                   </Row>
+
                   <div className='mt-2'>
                     <label className='auth-label' style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <input type='checkbox' checked={termForm.active} onChange={(e)=>setTermForm({...termForm, active: e.target.checked})} /> Active
+                      <input type='checkbox' checked={termForm.active}
+                             onChange={(e) => setTermForm({ ...termForm, active: e.target.checked })} /> Active
                     </label>
                   </div>
-                  <div className='mt-2'><Button style={{ background: '#B3261E' }} onClick={createTerm}>Add Term</Button></div>
+
+                  <div className='mt-2'>
+                    <Button style={{ background: '#B3261E' }} onClick={createTerm}>
+                      Add Term
+                    </Button>
+                  </div>
                 </div>
               </Col>
 
               <Col md="6">
                 <h6 className="auth-title" style={{ marginBottom: 8 }}>Existing Terms</h6>
+
                 {eligibilityTerms.length === 0 ? (
                   <p className='auth-label'>No terms yet.</p>
                 ) : (
                   <div>
                     {eligibilityTerms.map(t => (
-                      <div key={t._id} style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: 12, marginBottom: 10 }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center' }}>
+                      <div key={t._id}
+                           style={{ border: '1px solid #E5E7EB', borderRadius: 8, padding: 12, marginBottom: 10 }}>
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr auto',
+                          alignItems: 'center'
+                        }}>
                           <strong>{t.title}</strong>
+
                           <div style={{ display: 'inline-flex', gap: 8 }}>
-                            <Button size='sm' onClick={()=>{ setEditTermId(t._id); setEditForm({ title: t.title||'', description: t.description||'', category: t.category||'General', order: t.order||1, active: !!t.active }); }}>Edit</Button>
-                            <Button size='sm' color='danger' onClick={()=>deleteTerm(t._id)}>Delete</Button>
+                            <Button size='sm' onClick={() => {
+                              setEditTermId(t._id);
+                              setEditForm({
+                                title: t.title || '',
+                                description: t.description || '',
+                                category: t.category || 'General',
+                                order: t.order || 1,
+                                active: !!t.active
+                              });
+                            }}>Edit</Button>
+
+                            <Button size='sm' color='danger' onClick={() => deleteTerm(t._id)}>
+                              Delete
+                            </Button>
                           </div>
                         </div>
+
                         <div className='auth-label' style={{ marginTop: 6 }}>{t.description}</div>
                       </div>
                     ))}
@@ -395,7 +511,6 @@ const AdminDashboard = () => {
 
       <Footer />
 
-      
       <style>
         {`
           .pretty-search {
@@ -405,7 +520,6 @@ const AdminDashboard = () => {
             transition: 0.2s ease;
             font-size: 15px;
           }
-
           .pretty-search:focus {
             border-color: #a80000;
             box-shadow: 0 0 0 4px rgba(168, 0, 0, 0.15);
@@ -419,8 +533,12 @@ const AdminDashboard = () => {
 export default AdminDashboard;
 
 const getSidebarStyle = (active) => ({
-  width: 48, height: 48, borderRadius: 12,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  width: 48,
+  height: 48,
+  borderRadius: 12,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
   cursor: 'pointer',
   background: active ? '#B3261E' : '#F3F4F6',
   color: active ? '#FFFFFF' : '#374151',
