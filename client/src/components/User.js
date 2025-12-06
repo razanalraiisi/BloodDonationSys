@@ -7,6 +7,10 @@ const User = () => {
     const dispatch = useDispatch();
     const user = useSelector((state)=>state.users.user);
     const [donations, setDonations] = useState([]);
+    // Confirmation modal state
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmMessage, setConfirmMessage] = useState('Are you sure you want to delete?');
+    const [confirmAction, setConfirmAction] = useState(null);
     // Next eligible donation logic based on last donation type
     const getIntervalDays = (type) => {
         switch (type) {
@@ -489,22 +493,106 @@ const User = () => {
                     </div>
                 </div>
 
-                {/* Health History */}
+                {/* Health History & Uploaded Reports */}
                 <div className='auth-card' style={{ padding: 20, boxShadow: '0 6px 20px rgba(0,0,0,0.08)', borderRadius: 14, height: '100%' }}>
                     <div className='auth-title' style={{ fontSize: 20, fontWeight: 700, color: '#6B0000', textAlign: 'center', marginBottom: 14 }}>Health History</div>
                     <p className='auth-label' style={{ textAlign: 'center', marginBottom: 12 }}>
-                        Add any relevant notes (allergies, past conditions, medications). This is private and stored locally until backend support.
+                        Notes from signup are shown below. Adding new notes is disabled.
                     </p>
-                    <label className='auth-label d-block' style={{ marginBottom: 6 }}>Notes</label>
-                    <textarea
-                        className='auth-input'
-                        rows={8}
-                        placeholder='e.g., Allergy to penicillin. No chronic conditions. Not taking medication.'
-                        value={healthHistory}
-                        onChange={(e)=>{ setHealthHistory(e.target.value); try { localStorage.setItem('profile.healthHistory', e.target.value); } catch {} }}
-                        style={{ width: '100%' }}
-                    />
+                    <div>
+                        {Array.isArray(user?.medicalNotes) && user.medicalNotes.length > 0 ? (
+                            <div>
+                                {user.medicalNotes.map((n, idx) => (
+                                    <div key={n._id || idx} style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 8, border: '1px solid #E5E7EB', borderRadius: 10, padding: 10, marginBottom: 10, background: '#fff' }}>
+                                        <span className='auth-label' style={{ wordBreak: 'break-word' }}>{n.text}</span>
+                                        <button
+                                            style={{ background: '#B3261E', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 10px', cursor: 'pointer' }}
+                                            onClick={()=>{
+                                                if (!user?.email) return;
+                                                setConfirmMessage('Are you sure you want to delete this note?');
+                                                setConfirmAction(()=> async ()=>{
+                                                    try {
+                                                        await axios.delete(`http://localhost:5000/profile/notes/${n._id || ''}`, { data: { email: user.email, text: n.text } });
+                                                        try { await dispatch(getProfile(user.email)); } catch {}
+                                                    } catch (e) {
+                                                        try {
+                                                            await axios.delete(`http://localhost:5000/profile/notes`, { data: { email: user.email, index: idx } });
+                                                            try { await dispatch(getProfile(user.email)); } catch {}
+                                                        } catch {}
+                                                    }
+                                                });
+                                                setConfirmOpen(true);
+                                            }}
+                                        >Delete</button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className='auth-label'>No health notes from signup.</p>
+                        )}
+                    </div>
+
+                    <div className='auth-title' style={{ fontSize: 18, fontWeight: 700, color: '#6B0000', marginTop: 18, marginBottom: 10 }}>Uploaded Medical Reports</div>
+                    <p className='auth-label' style={{ marginBottom: 8 }}>Files you uploaded with your blood requests.</p>
+                    {(() => {
+                        const items = (Array.isArray(requests) ? requests : []).filter(r => !!r.medicalReportPath);
+                        if (items.length === 0) return (<p className='auth-label'>No uploaded reports.</p>);
+                        return (
+                            <div>
+                                {items.map((r) => {
+                                    const filename = (r.medicalReportPath || '').split('/').pop();
+                                    const url = filename ? `http://localhost:5000/uploads/${filename}` : '';
+                                    return (
+                                        <div key={r._id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', alignItems: 'center', gap: 8, border: '1px solid #E5E7EB', borderRadius: 10, padding: 10, marginBottom: 10, background: '#fff' }}>
+                                            <span className='auth-label' style={{ overflowWrap: 'anywhere' }}>{filename}</span>
+                                            <a href={url} target='_blank' rel='noreferrer' style={{ textDecoration: 'none' }}>
+                                                <button style={{ background: '#374151', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 10px', cursor: 'pointer' }}>View</button>
+                                            </a>
+                                            <button
+                                                style={{ background: '#B3261E', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 10px', cursor: 'pointer' }}
+                                                onClick={()=>{
+                                                    if (!user?.email) return;
+                                                    setConfirmMessage('Are you sure you want to delete this uploaded file?');
+                                                    setConfirmAction(()=> async ()=>{
+                                                        try {
+                                                            await axios.delete(`http://localhost:5000/request/${r._id}/attachment`, { data: { email: user.email } });
+                                                            try { fetchRequests(user.email); } catch {}
+                                                        } catch {}
+                                                    });
+                                                    setConfirmOpen(true);
+                                                }}
+                                            >Delete</button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })()}
                 </div>
+                {/* Confirmation Modal */}
+                {confirmOpen && (
+                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                        <div style={{ background: '#fff', borderRadius: 12, padding: 16, width: 'min(90vw, 380px)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
+                            <div className='auth-title' style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Confirm Delete</div>
+                            <div className='auth-label' style={{ color: '#374151', marginBottom: 12 }}>{confirmMessage}</div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                                <button
+                                    onClick={()=>{ setConfirmOpen(false); setConfirmAction(null); }}
+                                    style={{ background: '#e5e7eb', color: '#111827', border: 'none', borderRadius: 8, padding: '8px 12px', cursor: 'pointer' }}
+                                >Cancel</button>
+                                <button
+                                    onClick={async ()=>{ 
+                                        const action = confirmAction; 
+                                        setConfirmOpen(false); 
+                                        setConfirmAction(null); 
+                                        try { if (action) await action(); } catch {}
+                                    }}
+                                    style={{ background: '#B3261E', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 12px', cursor: 'pointer' }}
+                                >Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
