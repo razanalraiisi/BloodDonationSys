@@ -73,7 +73,7 @@ const User = () => {
         try {
             const savedName = localStorage.getItem('profile.displayName');
             const savedPic = localStorage.getItem(`profile.${email}.profileUrl`); // per-user only
-            const savedBlood = localStorage.getItem('profile.bloodType');
+            const savedBlood = localStorage.getItem(`profile.${email}.bloodType`);
             const savedDob = localStorage.getItem(`profile.${email}.dob`);
             const savedPhone = localStorage.getItem(`profile.${email}.phone`);
             const savedHealth = localStorage.getItem('profile.healthHistory');
