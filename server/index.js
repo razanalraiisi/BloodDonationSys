@@ -390,4 +390,38 @@ app.delete("/api/eligibility-terms/:id", async (req, res) => {
 });
 
 
+app.get("/api/admin/dashboard-stats", async (req, res) => {
+  try {
+    const activeDonors = await DonationModel.distinct("donorEmail").then(emails => emails.length);
+    const livesSaved = await RequestModel.countDocuments({ status: "Completed" });
+    const requestsAvailable = await RequestModel.countDocuments();
+    const donationsAvailable = await DonationModel.countDocuments();
+    const donationCenters = await DonationCenterModel.countDocuments();
+
+    res.status(200).json({
+      activeDonors,
+      livesSaved,
+      requestsAvailable,
+      donationsAvailable,
+      donationCenters
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching dashboard stats" });
+  }
+});
+
+// Get all donations for admin
+app.get("/donation/all", async (req, res) => {
+  try {
+    const donations = await DonationModel.find().sort({ createdAt: -1 });
+    res.json(donations);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error loading donations" });
+  }
+});
+
+
+
 app.listen(5000, () => console.log("Server running on port 5000"));
