@@ -71,7 +71,7 @@ const User = () => {
         fetchRequests(email);
         // hydrate local edits if present (scoped per user)
         try {
-            const savedName = localStorage.getItem('profile.displayName');
+            const savedName = localStorage.getItem(`profile.${email}.displayName`);
             const savedPic = localStorage.getItem(`profile.${email}.profileUrl`); // per-user only
             const savedBlood = localStorage.getItem(`profile.${email}.bloodType`);
             const savedDob = localStorage.getItem(`profile.${email}.dob`);
@@ -197,7 +197,12 @@ const User = () => {
                                     value={displayName}
                                     onChange={(e)=>{
                                         setDisplayName(e.target.value);
-                                        try { localStorage.setItem('profile.displayName', e.target.value); } catch {}
+                                        try { 
+                                            const email = user?.email;
+                                            if (email) {
+                                                localStorage.setItem(`profile.${email}.displayName`, e.target.value);
+                                            }
+                                        } catch {}
                                     }}
                                     placeholder='Your name'
                                     style={{ maxWidth: 320 }}
