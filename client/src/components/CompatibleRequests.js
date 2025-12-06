@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardBody, Button } from "reactstrap";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaHome } from "react-icons/fa";
 import axios from "axios";
 
 const CompatibleRequests = () => {
@@ -31,6 +31,9 @@ const CompatibleRequests = () => {
 
         if (Array.isArray(allRequests)) {
           const filtered = allRequests.filter(r => {
+            const status = (r.status || "").trim().toLowerCase();
+            // Exclude completed requests
+            if (status === 'completed') return false;
             const reqBlood = (r.bloodType || "").trim().toUpperCase();
             return bloodTypeMap[userBlood]?.includes(reqBlood);
           });
@@ -57,6 +60,28 @@ const CompatibleRequests = () => {
 
   return (
     <div style={{ padding: 30, background: "#fff0f5", minHeight: "100vh" }}>
+      <div style={{ marginBottom: 16 }}>
+        <button
+          onClick={() => navigate('/home')}
+          title='Go to Home'
+          style={{
+            background: '#B3261E',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 50,
+            width: 40,
+            height: 40,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: 20,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          }}
+        >
+          <FaHome />
+        </button>
+      </div>
       <Button
         color="#B3261E"
         style={{ marginBottom: 20, borderRadius: 12 }}
@@ -108,6 +133,7 @@ const CompatibleRequests = () => {
                     state: {
                       hospitalName: req.hospital,
                       hospitalFileNumber: req.hospitalFileNumber || '',
+                      requestId: req._id,
                     }
                   })}
                 >

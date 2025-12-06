@@ -57,7 +57,7 @@ const EligibilityTerms = () => {
 
   useEffect(()=>{
     let mounted = true;
-    (async () => {
+    const fetchTerms = async () => {
       try {
         const res = await axios.get('http://localhost:5000/api/eligibility-terms');
         const items = Array.isArray(res.data) ? res.data : [];
@@ -68,8 +68,15 @@ const EligibilityTerms = () => {
       } finally {
         if (mounted) setLoading(false);
       }
-    })();
-    return ()=>{ mounted = false; };
+    };
+    
+    fetchTerms();
+    const interval = setInterval(fetchTerms, 10000); // Refetch every 10 seconds
+    
+    return ()=>{ 
+      mounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return (

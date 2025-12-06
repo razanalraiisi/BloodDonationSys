@@ -56,6 +56,7 @@ const DonateBlood = () => {
     const [hospitalLocation, setHospitalLocation] = useState(location.state?.hospitalName || '');
     const [centers, setCenters] = useState([]);
     const [hospitalFileNumber, setHospitalFileNumber] = useState(location.state?.hospitalFileNumber || '');
+    const [linkedRequestId] = useState(location.state?.requestId || null);
 
     const [donationError, setDonationError] = useState('');
     const [donationSuccess, setDonationSuccess] = useState('');
@@ -171,10 +172,31 @@ const DonateBlood = () => {
             traveledRecent,
         };
 
-        axios.post('http://localhost:5000/donation/create', payload)
-            .then(() => {
-                setDonationSuccess('Donation submitted successfully.');
-            })
+            axios.post('http://localhost:5000/donation/create', payload)
+                .then(() => {
+                    // Initially indicate donation success
+                    setDonationSuccess('Donation submitted successfully.');
+
+                    // If donation corresponds to a specific request, mark it Completed,
+                    // then update UI and redirect the user back to Donation Center.
+                    if (linkedRequestId) {
+                        axios.post('http://localhost:5000/request/updateStatus', { id: linkedRequestId, status: 'Completed' })
+                            .then(() => {
+                                setDonationSuccess('Donation submitted successfully. The request has been marked completed. Redirecting to Donation Center...');
+                                // Redirect after a short delay so user can read the message
+                                setTimeout(() => navigate('/centers'), 1600);
+                            })
+                            .catch((err) => {
+                                console.error('Failed to mark request completed', err);
+                                setDonationError('Donation submitted but failed to mark the related request completed.');
+                                // Still redirect after a short delay so user returns to center
+                                setTimeout(() => navigate('/centers'), 2000);
+                            });
+                    } else {
+                        
+                        setTimeout(() => navigate('/centers'), 1400);
+                    }
+                })
             .catch((err) => {
                 const msg = err?.response?.data?.message || 'Failed to submit donation.';
                 setDonationError(msg);

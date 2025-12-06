@@ -1,5 +1,6 @@
 import { Container, Row, Col, UncontrolledAccordion, AccordionItem, AccordionHeader, AccordionBody, Card, CardBody, Button } from "reactstrap";
 import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import CountUp from "react-countup"; // For smooth number animation
 import BloodDonate from "../assets/BloodDonate.png";
@@ -26,6 +27,8 @@ const Home = () => {
     return () => clearInterval(interval); // clean up on unmount
   }, []);
 
+  const navigate = useNavigate();
+
   return (
     <Container fluid>
       <Row style={{ backgroundColor: '#ffff' }}>
@@ -34,8 +37,8 @@ const Home = () => {
         </Col>
         <Col className="mt-5 gx-4 gy-4 stats-row text-center justify-content-center">
           <h3 style={{ color: '#B3261E' }}>Blood donation is a simple act of kindness that can save countless lives.</h3><br />
-          <Button style={{ backgroundColor: '#f7c7c7', color: '#B3261E', borderRadius: '15px' }} href="/request">Request Blood</Button> {" "}
-          <Button style={{ backgroundColor: '#f7c7c7', color: '#B3261E', borderRadius: '15px' }} href="/donate">Donate Blood</Button>
+          <Button style={{ backgroundColor: '#f7c7c7', color: '#B3261E', borderRadius: '15px' }} onClick={() => navigate('/request')}>Request Blood</Button> {" "}
+          <Button style={{ backgroundColor: '#f7c7c7', color: '#B3261E', borderRadius: '15px' }} onClick={() => navigate('/compatibleRequests')}>Donate Blood</Button>
         </Col>
       </Row>
 

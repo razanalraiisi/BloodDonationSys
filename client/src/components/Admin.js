@@ -151,6 +151,8 @@ const AdminDashboard = () => {
     }
     try {
       await axios.put(`http://localhost:5000/api/eligibility-terms/${id}`, patch);
+      setTermMsg('Term updated successfully');
+      setTimeout(() => setTermMsg(''), 2000);
       loadTerms();
     } catch { setTermMsg('Update failed'); }
   };
@@ -422,6 +424,55 @@ const AdminDashboard = () => {
                 {termMsg}
               </div>
             )}
+
+            {editTermId ? (
+              <div style={{ background: '#F3F4F6', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+                <h6 className="auth-title" style={{ marginBottom: 8 }}>Edit Term</h6>
+                <label className='auth-label'>Title</label>
+                <Input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+
+                <label className='auth-label' style={{ marginTop: 8 }}>Description</label>
+                <Input type="textarea" rows={4} value={editForm.description}
+                       onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+
+                <Row className='mt-2'>
+                  <Col>
+                    <label className='auth-label'>Category</label>
+                    <Input value={editForm.category}
+                           onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} />
+                  </Col>
+
+                  <Col>
+                    <label className='auth-label'>Order</label>
+                    <Input type='number' value={editForm.order} min={1}
+                           onChange={(e) => setEditForm({ ...editForm, order: Number(e.target.value) || 1 })} />
+                  </Col>
+                </Row>
+
+                <div className='mt-2'>
+                  <label className='auth-label' style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <input type='checkbox' checked={editForm.active}
+                           onChange={(e) => setEditForm({ ...editForm, active: e.target.checked })} /> Active
+                  </label>
+                </div>
+
+                <div className='mt-2' style={{ display: 'flex', gap: 8 }}>
+                  <Button style={{ background: '#B3261E' }} onClick={() => {
+                    updateTerm(editTermId, editForm);
+                    setEditTermId(null);
+                    setEditForm({ title: '', description: '', category: 'General', order: 1, active: true });
+                  }}>
+                    Save
+                  </Button>
+                  <Button style={{ background: '#6B7280' }} onClick={() => {
+                    setEditTermId(null);
+                    setEditForm({ title: '', description: '', category: 'General', order: 1, active: true });
+                  }}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : null}
 
             <Row>
               <Col md="6">

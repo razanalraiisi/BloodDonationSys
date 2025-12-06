@@ -1,10 +1,13 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FaHome } from 'react-icons/fa';
 import axios from 'axios';
 import { updateProfile, getProfile } from '../features/UserSlice';
 
 const User = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const user = useSelector((state)=>state.users.user);
     const [donations, setDonations] = useState([]);
     // Confirmation modal state
@@ -142,6 +145,28 @@ const User = () => {
 
     return (
         <div style={{ padding: '24px 16px', maxWidth: 1100, margin: '0 auto' }}>
+            <div style={{ marginBottom: 16 }}>
+                <button
+                    onClick={() => navigate('/home')}
+                    title='Go to Home'
+                    style={{
+                        background: '#B3261E',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 50,
+                        width: 40,
+                        height: 40,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        fontSize: 20,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    }}
+                >
+                    <FaHome />
+                </button>
+            </div>
             <h2 className='auth-title' style={{ textAlign: 'center', marginBottom: 24 }}>User Profile</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'stretch' }}>
                 {/* Left: Profile card */}
