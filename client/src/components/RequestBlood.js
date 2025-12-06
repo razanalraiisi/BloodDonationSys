@@ -4,7 +4,7 @@ import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { getProfile } from "../features/UserSlice"; // adjust path if needed
+import { getProfile } from "../features/UserSlice";
 
 const RequestBlood = () => {
   const navigate = useNavigate();
@@ -37,12 +37,14 @@ const RequestBlood = () => {
   const [error, setError] = useState("");
 
 
-  // ⭐ Load user profile from DB after login
+  // ⭐ Load user profile ONCE — prevents autofill being overwritten
   useEffect(() => {
-    if (user?.email) {
-      dispatch(getProfile(user.email));
+    const savedEmail = localStorage.getItem("userEmail");
+    if (savedEmail) {
+      dispatch(getProfile(savedEmail));
     }
-  }, [dispatch, user?.email]);
+  }, [dispatch]);
+
 
   // ⭐ Load hospital centers
   useEffect(() => {
@@ -57,7 +59,8 @@ const RequestBlood = () => {
     fetchHospitals();
   }, []);
 
-  // ⭐ Autofill for "self"
+
+  // ⭐ Autofill when mode = self
   useEffect(() => {
     if (mode === "self" && user) {
       setFullName(user.fullName || "");
@@ -72,15 +75,6 @@ const RequestBlood = () => {
     setMessage("");
     setError("");
 
-    console.log("DEBUG SUBMIT:", {
-      userEmail: email,
-      patientName: fullName,
-      bloodType,
-      hospital,
-      neededDate,
-      mode,
-    });
-
     try {
       const formData = new FormData();
 
@@ -94,7 +88,7 @@ const RequestBlood = () => {
       formData.append("reason", reason);
       formData.append("hospital", hospital);
       formData.append("urgency", urgency);
-      formData.append("neededDate", neededDate); // FIXED 💥
+      formData.append("neededDate", neededDate);
       formData.append("mode", mode);
 
       if (medicalReport) {
@@ -107,7 +101,7 @@ const RequestBlood = () => {
 
       setMessage("Request submitted successfully.");
 
-      // Reset only optional fields – NOT autofill fields
+      // Reset optional fields after submit
       setPatientId("");
       setHospitalFileNumber("");
       setRelationship("");
@@ -115,7 +109,7 @@ const RequestBlood = () => {
       setReason("");
       setHospital("");
       setUrgency("Normal");
-      setNeededDate(""); // now this resets correctly
+      setNeededDate("");
       setMedicalReport(null);
 
     } catch (err) {
@@ -128,7 +122,7 @@ const RequestBlood = () => {
   return (
     <div className="auth-page" style={{ position: "relative" }}>
 
-      {/* ⭐ Fixed Back Button */}
+      {/* ⭐ Back Button */}
       <button
         onClick={() => navigate("/home")}
         style={{
@@ -183,8 +177,9 @@ const RequestBlood = () => {
               <input
                 className="auth-input"
                 value={email}
-                readOnly={mode === "self"}   // submits properly
+                readOnly={mode === "self"}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </FormGroup>
 
@@ -196,6 +191,7 @@ const RequestBlood = () => {
                 value={fullName}
                 readOnly={mode === "self"}
                 onChange={(e) => setFullName(e.target.value)}
+                required
               />
             </FormGroup>
 
@@ -219,7 +215,7 @@ const RequestBlood = () => {
               />
             </FormGroup>
 
-            {/* Relationship (if other) */}
+            {/* Relationship */}
             {mode === "other" && (
               <FormGroup className="mb-3">
                 <Label>Relationship to Patient</Label>
@@ -237,8 +233,9 @@ const RequestBlood = () => {
               <select
                 className="auth-input"
                 value={bloodType}
-                readOnly={mode === "self"}
+                disabled={mode === "self"}   // ⭐ correct behavior
                 onChange={(e) => setBloodType(e.target.value)}
+                required
               >
                 <option value="">Select</option>
                 <option>O+</option>
@@ -259,6 +256,7 @@ const RequestBlood = () => {
                 className="auth-input"
                 value={hospital}
                 onChange={(e) => setHospital(e.target.value)}
+                required
               >
                 <option value="">Select Hospital</option>
                 {hospitalList.map((center) => (
@@ -276,10 +274,7 @@ const RequestBlood = () => {
                 type="date"
                 className="auth-input"
                 value={neededDate}
-                onChange={(e) => {
-                  console.log("DATE SELECTED:", e.target.value);
-                  setNeededDate(e.target.value);
-                }}
+                onChange={(e) => setNeededDate(e.target.value)}
                 required
               />
             </FormGroup>
@@ -316,6 +311,7 @@ const RequestBlood = () => {
                     onChange={() => setUrgency("Normal")}
                   /> Normal
                 </label>
+
                 <label className="me-3">
                   <input
                     type="radio"
@@ -323,6 +319,7 @@ const RequestBlood = () => {
                     onChange={() => setUrgency("Urgent")}
                   /> Urgent
                 </label>
+
                 <label>
                   <input
                     type="radio"
