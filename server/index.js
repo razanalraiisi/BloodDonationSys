@@ -16,16 +16,14 @@ app.use(cors());
 app.use(express.json());
 
 // ensure uploads folder exists
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
-}
+if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
 
 // serve uploaded files (medical reports)
 app.use("/uploads", express.static("uploads"));
 
-// ----------------------------------
-// 1) CONNECT TO MONGODB ATLAS
-// ----------------------------------
+// -----------------------------
+// MONGODB CONNECT
+// -----------------------------
 try {
   const conStr =
     "mongodb+srv://admin:admin@cluster0.luc5pu9.mongodb.net/?appName=Cluster0";
@@ -35,54 +33,27 @@ try {
   console.log("Database connection error: " + error);
 }
 
-// ----------------------------------
-// MULTER SETUP FOR MEDICAL REPORT UPLOADS
-// ----------------------------------
+// -----------------------------
+// MULTER SETUP
+// -----------------------------
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // folder is guaranteed above
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
 });
-
 const upload = multer({ storage });
 
-// ----------------------------------
+// -----------------------------
 // USER REGISTER
-// ----------------------------------
+// -----------------------------
 app.post("/register", async (req, res) => {
   try {
-    const {
-      fullName,
-      email,
-      password,
-      bloodType,
-      dob,
-      city,
-      medicalHistory,
-      gender,
-    } = req.body;
-
-    if (
-      !fullName ||
-      !email ||
-      !password ||
-      !bloodType ||
-      !dob ||
-      !city ||
-      !gender
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Please provide all required fields." });
-    }
+    const { fullName, email, password, bloodType, dob, city, medicalHistory, gender } =
+      req.body;
+    if (!fullName || !email || !password || !bloodType || !dob || !city || !gender)
+      return res.status(400).json({ message: "Please provide all required fields." });
 
     const existing = await UserModel.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+    if (existing) return res.status(400).json({ message: "User already exists" });
 
     const hashed = await bcrypt.hash(password, 10);
 
@@ -98,30 +69,23 @@ app.post("/register", async (req, res) => {
     });
 
     await newUser.save();
-    res
-      .status(200)
-      .json({ message: "User registered successfully", user: newUser });
+    res.status(200).json({ message: "User registered successfully", user: newUser });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
-// ----------------------------------
+// -----------------------------
 // USER LOGIN
-// ----------------------------------
+// -----------------------------
 app.post("/login", async (req, res) => {
   try {
     const user = await UserModel.findOne({ email: req.body.email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const pwd_match = await bcrypt.compare(req.body.password, user.password);
-    if (!pwd_match) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!pwd_match) return res.status(401).json({ message: "Invalid credentials" });
 
     res.status(200).json({ user, message: "Login successful" });
   } catch (error) {
@@ -129,109 +93,85 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// ----------------------------------
-// GET USER PROFILE
-// ----------------------------------
+// -----------------------------
+// GET / UPDATE PROFILE
+// -----------------------------
 app.post("/profile", async (req, res) => {
   try {
     const user = await UserModel.findOne({ email: req.body.email });
-
     if (!user) return res.status(404).json({ message: "User not found" });
-
     res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// ----------------------------------
-// UPDATE PROFILE
-// ----------------------------------
 app.post("/updateProfile", async (req, res) => {
   try {
-    const {
-      email,
-      fullName,
-      city,
-      bloodType,
-      medicalHistory,
-      dob,
-      gender,
-    } = req.body;
-
+    const { email, fullName, city, bloodType, medicalHistory, dob, gender } = req.body;
     await UserModel.updateOne(
       { email },
       { $set: { fullName, city, bloodType, medicalHistory, dob, gender } }
     );
-
     res.status(200).json({ message: "Profile updated" });
   } catch (err) {
     res.status(500).json({ message: "Error updating profile" });
   }
 });
 
-// ======================================================
-// BLOOD REQUEST — CREATE (WITH FILE UPLOAD)
-// ======================================================
-app.post(
-  "/request/create",
-  upload.single("medicalReport"),
-  async (req, res) => {
-    try {
-      const {
-        userEmail,
-        patientName,
-        patientId,
-        hospitalFileNumber,
-        relationship,
-        bloodType,
-        bloodUnits,
-        reason,
-        hospital,
-        urgency,
-        neededDate,
-        mode,
-      } = req.body;
+// -----------------------------
+// BLOOD REQUEST
+// -----------------------------
+app.post("/request/create", upload.single("medicalReport"), async (req, res) => {
+  try {
+    const {
+      userEmail,
+      patientName,
+      patientId,
+      hospitalFileNumber,
+      relationship,
+      bloodType,
+      bloodUnits,
+      reason,
+      hospital,
+      urgency,
+      neededDate,
+      mode,
+    } = req.body;
 
-      if (!userEmail || !patientName || !bloodType || !hospital || !neededDate || !mode) {
-        return res
-          .status(400)
-          .json({ message: "Missing required fields for request" });
-      }
+    if (!userEmail || !patientName || !bloodType || !hospital || !neededDate || !mode)
+      return res.status(400).json({ message: "Missing required fields for request" });
 
-      const medicalReportPath = req.file ? req.file.path : "";
+    const medicalReportPath = req.file ? req.file.path : "";
 
-      const newRequest = new RequestModel({
-        userEmail,
-        patientName,
-        patientId,
-        hospitalFileNumber,
-        relationship,
-        bloodType,
-        bloodUnits: bloodUnits ? Number(bloodUnits) : 0,
-        reason,
-        hospital,
-        urgency,
-        neededDate,
-        medicalReportPath,
-        mode,
-      });
+    const newRequest = new RequestModel({
+      userEmail,
+      patientName,
+      patientId,
+      hospitalFileNumber,
+      relationship,
+      bloodType,
+      bloodUnits: bloodUnits ? Number(bloodUnits) : 0,
+      reason,
+      hospital,
+      urgency,
+      neededDate,
+      medicalReportPath,
+      mode,
+    });
 
-      await newRequest.save();
-
-      res.status(200).json({ message: "Request created successfully" });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Server error creating request" });
-    }
+    await newRequest.save();
+    res.status(200).json({ message: "Request created successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error creating request" });
   }
-);
+});
 
-// ======================================================
-// DASHBOARD COUNTS
-// ======================================================
-let cachedLivesSaved = 0; // optimized counter
-
+// -----------------------------
+// REQUEST STATUS UPDATE (Optimized Lives Saved)
+// -----------------------------
+let cachedLivesSaved = 0;
 const initializeCachedLivesSaved = async () => {
   try {
     cachedLivesSaved = await RequestModel.countDocuments({ status: "Completed" });
@@ -239,38 +179,168 @@ const initializeCachedLivesSaved = async () => {
     console.error("Error initializing livesSaved cache:", err);
   }
 };
-
 initializeCachedLivesSaved();
 
-app.get("/api/dashboard", async (req, res) => {
-  try {
-    // Active Donors: count unique donorEmail in Donations
-    const activeDonors = await DonationModel.distinct("donorEmail").then(
-      (emails) => emails.length
-    );
-
-    res.status(200).json({
-      activeDonors,
-      livesSaved: cachedLivesSaved,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error fetching dashboard data" });
-  }
-});
-
-// ======================================================
-// UPDATE REQUEST STATUS (Optimized Lives Saved Counter)
-// ======================================================
 app.post("/request/updateStatus", async (req, res) => {
   try {
     const { id, status } = req.body;
     const request = await RequestModel.findById(id);
     if (!request) return res.status(404).json({ message: "Request not found" });
 
-// ======================================================
-// ELIGIBILITY TERMS — PUBLIC LIST
-// ======================================================
+    const prevStatus = request.status;
+    request.status = status;
+    await request.save();
+
+    if (prevStatus !== "Completed" && status === "Completed") cachedLivesSaved += 1;
+
+    res.json({ message: "Request status updated", livesSaved: cachedLivesSaved });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error updating request status" });
+  }
+});
+
+// -----------------------------
+// DASHBOARD COUNTS
+// -----------------------------
+app.get("/api/dashboard", async (req, res) => {
+  try {
+    const activeDonors = await DonationModel.distinct("donorEmail").then((emails) => emails.length);
+    res.status(200).json({ activeDonors, livesSaved: cachedLivesSaved });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching dashboard data" });
+  }
+});
+
+// -----------------------------
+// USER REQUESTS
+// -----------------------------
+app.post("/request/mine", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const myRequests = await RequestModel.find({ userEmail: email });
+    res.json(myRequests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error loading user requests" });
+  }
+});
+
+// -----------------------------
+// ADMIN REQUESTS
+// -----------------------------
+app.get("/request/all", async (req, res) => {
+  try {
+    const allRequests = await RequestModel.find();
+    res.json(allRequests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error loading requests" });
+  }
+});
+
+app.post("/request/approve", async (req, res) => {
+  try {
+    const { id } = req.body;
+    await RequestModel.findByIdAndUpdate(id, { status: "Approved" });
+    res.json({ message: "Request Approved" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error approving request" });
+  }
+});
+
+app.post("/request/reject", async (req, res) => {
+  try {
+    const { id } = req.body;
+    await RequestModel.findByIdAndUpdate(id, { status: "Rejected" });
+    res.json({ message: "Request Rejected" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error rejecting request" });
+  }
+});
+
+// -----------------------------
+// DONATION CENTERS
+// -----------------------------
+app.post("/center/add", async (req, res) => {
+  try {
+    const newCenter = new DonationCenterModel(req.body);
+    await newCenter.save();
+    res.json({ message: "Center added" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.get("/api/donation-centers", async (req, res) => {
+  try {
+    const centers = await DonationCenterModel.find();
+    res.json(centers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// -----------------------------
+// DONATIONS
+// -----------------------------
+app.post("/donation/create", async (req, res) => {
+  try {
+    const {
+      donorEmail,
+      donorName,
+      bloodType,
+      donationType,
+      hospitalLocation,
+      feelingWell,
+      healthChanges,
+      medication,
+      chronicIllness,
+      traveledRecent,
+    } = req.body;
+
+    if (!donorEmail || !bloodType || !donationType || !feelingWell || !healthChanges || !medication || !chronicIllness)
+      return res.status(400).json({ message: "Missing required fields" });
+
+    const donation = new DonationModel({
+      donorEmail,
+      donorName,
+      bloodType,
+      donationType,
+      hospitalLocation,
+      feelingWell,
+      healthChanges,
+      medication,
+      chronicIllness,
+      traveledRecent,
+    });
+
+    const saved = await donation.save();
+    res.status(200).json({ message: "Donation submitted", donationId: saved._id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.post("/donation/mine", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email required" });
+    const mine = await DonationModel.find({ donorEmail: email }).sort({ createdAt: -1 });
+    res.status(200).json(mine);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// -----------------------------
+// ELIGIBILITY TERMS
+// -----------------------------
 app.get("/api/eligibility-terms", async (req, res) => {
   try {
     const terms = await EligibilityTerm.find({ active: true }).sort({ order: 1, createdAt: 1 });
@@ -281,9 +351,6 @@ app.get("/api/eligibility-terms", async (req, res) => {
   }
 });
 
-// ======================================================
-// ELIGIBILITY TERMS — ADMIN CRUD (no auth yet)
-// ======================================================
 app.post("/api/eligibility-terms", async (req, res) => {
   try {
     const { title, description, category, order, active } = req.body;
@@ -301,11 +368,7 @@ app.put("/api/eligibility-terms/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, category, order, active } = req.body;
-    const updated = await EligibilityTerm.findByIdAndUpdate(
-      id,
-      { $set: { title, description, category, order, active } },
-      { new: true }
-    );
+    const updated = await EligibilityTerm.findByIdAndUpdate(id, { $set: { title, description, category, order, active } }, { new: true });
     if (!updated) return res.status(404).json({ message: "Term not found" });
     res.json(updated);
   } catch (err) {
@@ -325,24 +388,6 @@ app.delete("/api/eligibility-terms/:id", async (req, res) => {
     res.status(500).json({ message: "Error deleting term" });
   }
 });
-    const prevStatus = request.status;
-    request.status = status;
-    await request.save();
-
-    // Increment cachedLivesSaved if status changed to Completed
-    if (prevStatus !== "Completed" && status === "Completed") {
-      cachedLivesSaved += 1;
-    }
-
-    res.json({ message: "Request status updated", livesSaved: cachedLivesSaved });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error updating request status" });
-  }
-});
 
 
-
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
-});
+app.listen(5000, () => console.log("Server running on port 5000"));
