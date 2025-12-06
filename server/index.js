@@ -388,6 +388,23 @@ app.post("/donation/mine", async (req, res) => {
   }
 });
 
+// ----------------------------------
+// CHECK IF EMAIL ALREADY EXISTS
+// ----------------------------------
+app.get("/users/check-email/:email", async (req, res) => {
+  try {
+    const email = req.params.email.toLowerCase();
+
+    const existingUser = await UserModel.findOne({ email });
+
+    return res.json({ exists: !!existingUser });
+  } catch (err) {
+    console.error("Email check error:", err);
+    return res.status(500).json({ exists: false, error: "Server error" });
+  }
+});
+
+
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });

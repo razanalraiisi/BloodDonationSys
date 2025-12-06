@@ -8,109 +8,117 @@ import { Link, useLocation } from 'react-router-dom';
 import { getUser } from '../features/UserSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { isAxiosError } from 'axios';
 
 const Login = () => {
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.users.user);
+  const isSuccess = useSelector((state) => state.users.isSuccess);
+  const isError = useSelector((state) => state.users.isError);
+  const errorMsg = useSelector((state) => state.users.errorMsg); // must exist in your slice
 
-    let [email, setEmail] = useState('');
-    let [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    const dispatch = useDispatch();
-    const user = useSelector((state) => state.users.user);
-    const isSuccess = useSelector((state) => state.users.isSuccess);
-    const isError = useSelector((state) => state.users.isError);
+  const [topAlerts, setTopAlerts] = useState([]);
+  const [showRegisteredMsg, setShowRegisteredMsg] = useState(
+    !!(location.state && location.state.justRegistered)
+  );
 
-    const navigate = useNavigate();
-    const location = useLocation();
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(UserSchemaValidation),
+    mode: "onSubmit",
+  });
 
-    const [showRegisteredMsg, setShowRegisteredMsg] = useState(
-        !!(location.state && location.state.justRegistered)
-    );
+  const onValid = async (data) => {
+    // Frontend Yup validation passed, now dispatch backend login
+    try {
+      await dispatch(getUser(data)).unwrap();
+      // if success, redirect handled in useEffect
+    } catch (err) {
+      // Backend returned error (wrong email or password)
+      setTopAlerts([err?.message || "Email or password is incorrect."]);
+      setTimeout(() => setTopAlerts([]), 4000);
+    }
+  };
 
-    const {
-        register,
-        handleSubmit: submitForm,
-        formState: { errors }
-    } = useForm({ resolver: yupResolver(UserSchemaValidation) });
+  const onInvalid = (formErrors) => {
+    // Show all validation errors
+    const messages = Object.values(formErrors).map(err => err.message);
+    setTopAlerts(messages);
+    setTimeout(() => setTopAlerts([]), 4000);
+  };
 
-    const validate = () => {
-        const data = {
-            email: email,
-            password: password,
-        };
-        dispatch(getUser(data));
-    };
+  useEffect(() => {
+    if (isSuccess && user && user.email) {
+      if (user.isAdmin) navigate("/admin");
+      else navigate("/home");
+    }
+  }, [isSuccess, user, navigate]);
 
-    // ✅ UPDATED REDIRECTION LOGIC
-    useEffect(() => {
-        if (isSuccess && user && user.email) {
-            if (user.isAdmin) {
-                navigate("/admin");   // redirect admin to dashboard
-            } else {
-                navigate("/home");    // normal user home page
-            }
-        }
+  return (
+    <div className="auth-page">
+      <div className="auth-card">
 
-        if (isError) {
-            navigate("/");
-        }
-    }, [user, isSuccess, isError, navigate]);
-
-    return (
-        <div className="auth-page">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <img alt='Logo' height={36} src={Logo} />
-                </div>
-
-                {showRegisteredMsg && (
-                    <Alert color="success" toggle={() => setShowRegisteredMsg(false)}>
-                        You have successfully registered. Please sign in.
-                    </Alert>
-                )}
-
-                <h2 className="auth-title">Sign In Form</h2>
-
-                <form>
-                    <FormGroup className='mb-3'>
-                        <Label className='auth-label'>Email</Label>
-                        <input
-                            {...register('email', {
-                                value: email,
-                                onChange: (e) => setEmail(e.target.value)
-                            })}
-                            placeholder='example@mail.com'
-                            type='email'
-                            className='auth-input' />
-                        <p className='auth-help' style={{ color: '#B3261E' }}>{errors.email?.message}</p>
-                    </FormGroup>
-
-                    <FormGroup className='mb-2'>
-                        <Label className='auth-label'>Password</Label>
-                        <input
-                            {...register('password', {
-                                value: password,
-                                onChange: (e) => setPassword(e.target.value)
-                            })}
-                            placeholder='Enter your password'
-                            type='password'
-                            className='auth-input' />
-                        <p className='auth-help' style={{ color: '#B3261E' }}>{errors.password?.message}</p>
-                    </FormGroup>
-
-                    <div className='auth-actions'>
-                        <Button onClick={submitForm(validate)} className='auth-btn-primary w-100'>
-                            Sign In
-                        </Button>
-                    </div>
-
-                    <div className='auth-footer'>
-                        No account? <Link to='/register'>Sign Up</Link>
-                    </div>
-                </form>
-            </div>
+        <div className="auth-header">
+          <img alt="Logo" height={36} src={Logo} />
         </div>
-    );
-}
+
+        {showRegisteredMsg && (
+          <Alert color="success" toggle={() => setShowRegisteredMsg(false)}>
+            🎉 You have successfully registered. Please sign in.
+          </Alert>
+        )}
+
+        {topAlerts.length > 0 && (
+          <Alert color="danger" style={{ fontWeight: 'bold', background: '#ffe6e6', borderColor: '#ff4d4d', color: '#b30000' }}>
+            ⚠️ Please check the following:
+            <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
+              {topAlerts.map((msg, idx) => <li key={idx}>{msg}</li>)}
+            </ul>
+          </Alert>
+        )}
+
+        <h2 className="auth-title">Sign In Form</h2>
+
+        <form onSubmit={handleSubmit(onValid, onInvalid)}>
+
+          {/* EMAIL FIELD */}
+          <FormGroup className="mb-3">
+            <Label className="auth-label">Email</Label>
+            <input
+              {...register("email")}
+              placeholder="example@mail.com"
+              type="text"   // Yup handles validation
+              autoComplete="off"
+              className={`auth-input ${errors.email ? "input-error" : ""}`}
+            />
+          </FormGroup>
+
+          {/* PASSWORD FIELD */}
+          <FormGroup className="mb-2">
+            <Label className="auth-label">Password</Label>
+            <input
+              {...register("password")}
+              placeholder="Enter your password"
+              type="password"
+              autoComplete="off"
+              className={`auth-input ${errors.password ? "input-error" : ""}`}
+            />
+          </FormGroup>
+
+          <div className="auth-actions">
+            <Button type="submit" className="auth-btn-primary w-100">
+              Sign In
+            </Button>
+          </div>
+
+          <div className="auth-footer">
+            No account? <Link to="/register">Sign Up</Link>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 export default Login;
