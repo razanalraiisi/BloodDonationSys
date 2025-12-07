@@ -1,0 +1,305 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DonateBlood Form matches DonateBlood UI snapshot 1`] = `
+<div>
+  <div
+    class="auth-page"
+  >
+    <div
+      class="auth-card"
+    >
+      <div
+        class="auth-header"
+      >
+        <div
+          style="position: relative; width: 100%; display: flex; justify-content: center; align-items: center;"
+        >
+          <button
+            aria-label="Go back"
+            style="position: absolute; left: 0px; background: rgb(255, 255, 255); border: 1px solid #e5e7eb; border-radius: 999px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.06);"
+          >
+            ←
+          </button>
+          <img
+            alt="Logo"
+            height="36"
+            src="logo.jpeg"
+          />
+        </div>
+      </div>
+      <h2
+        class="auth-title"
+      >
+        Donate Blood Form
+      </h2>
+      <p
+        class="auth-label"
+        style="margin-top: -8px; margin-bottom: 16px; text-align: center;"
+      >
+        Donor: 
+        <strong>
+          John Doe
+        </strong>
+         — Blood Type:
+         
+        <span
+          style="display: inline-block; margin-left: 6px; padding: 2px 10px; border-radius: 999px; background-color: rgb(243, 244, 246); border: 1px solid #e5e7eb; font-weight: 600;"
+        >
+          O+
+        </span>
+      </p>
+      <p
+        class="auth-label"
+        style="text-align: center; margin-bottom: 12px;"
+      >
+        See 
+        <a
+          href="/info"
+          style="color: rgb(179, 38, 30); text-decoration: underline;"
+        >
+          Eligibility & Terms
+        </a>
+         before you donate.
+      </p>
+      <div
+        class="mb-3 mb-3"
+      >
+        <label
+          class="auth-label form-label"
+        >
+          Hospital File Number
+        </label>
+        <input
+          class="auth-input"
+          placeholder="e.g., HFN-123456"
+          type="text"
+          value=""
+        />
+      </div>
+      <form>
+        <div
+          class="mb-3 auth-radio-group mb-3"
+        >
+          <label
+            class="auth-label d-block form-label"
+          >
+            Are you feeling well today?
+          </label>
+          <div
+            style="display: flex; gap: 16px;"
+          >
+            <label
+              class="me-3 form-label"
+            >
+              <input
+                name="feelingWell"
+                type="radio"
+              />
+               Yes
+            </label>
+            <label
+              class="form-label"
+            >
+              <input
+                name="feelingWell"
+                type="radio"
+              />
+               No
+            </label>
+          </div>
+        </div>
+        <div
+          class="mb-3 auth-radio-group mb-3"
+        >
+          <label
+            class="auth-label d-block form-label"
+          >
+            Any new health changes since your last donation?
+          </label>
+          <div
+            style="display: flex; gap: 16px;"
+          >
+            <label
+              class="me-3 form-label"
+            >
+              <input
+                name="healthChanges"
+                type="radio"
+              />
+               Yes
+            </label>
+            <label
+              class="form-label"
+            >
+              <input
+                name="healthChanges"
+                type="radio"
+              />
+               No
+            </label>
+          </div>
+        </div>
+        <div
+          class="mb-3 auth-radio-group mb-3"
+        >
+          <label
+            class="auth-label d-block form-label"
+          >
+            Are you currently taking any medication?
+          </label>
+          <div
+            style="display: flex; gap: 16px;"
+          >
+            <label
+              class="me-3 form-label"
+            >
+              <input
+                name="medication"
+                type="radio"
+              />
+               Yes
+            </label>
+            <label
+              class="form-label"
+            >
+              <input
+                name="medication"
+                type="radio"
+              />
+               No
+            </label>
+          </div>
+        </div>
+        <div
+          class="mb-3 auth-radio-group mb-3"
+        >
+          <label
+            class="auth-label d-block form-label"
+          >
+            Do you have any chronic illnesses?
+          </label>
+          <div
+            style="display: flex; gap: 16px;"
+          >
+            <label
+              class="me-3 form-label"
+            >
+              <input
+                name="chronicIllness"
+                type="radio"
+              />
+               Yes
+            </label>
+            <label
+              class="form-label"
+            >
+              <input
+                name="chronicIllness"
+                type="radio"
+              />
+               No
+            </label>
+          </div>
+        </div>
+        <div
+          class="mb-3 auth-radio-group mb-3"
+        >
+          <label
+            class="auth-label d-block form-label"
+          >
+            Have you traveled recently in the last 14 days? (Optional)
+          </label>
+          <div
+            style="display: flex; gap: 16px;"
+          >
+            <label
+              class="me-3 form-label"
+            >
+              <input
+                name="traveledRecent"
+                type="radio"
+              />
+               Yes
+            </label>
+            <label
+              class="form-label"
+            >
+              <input
+                name="traveledRecent"
+                type="radio"
+              />
+               No
+            </label>
+          </div>
+        </div>
+        <div
+          class="mb-3 auth-radio-group mb-3"
+        >
+          <label
+            class="auth-label d-block form-label"
+          >
+            Type of Donation
+          </label>
+          <label
+            class="me-3 form-label"
+          >
+            <input
+              name="donationType"
+              type="radio"
+            />
+             Whole Blood
+          </label>
+          <label
+            class="me-3 form-label"
+          >
+            <input
+              name="donationType"
+              type="radio"
+            />
+             Plasma
+          </label>
+          <label
+            class="form-label"
+          >
+            <input
+              name="donationType"
+              type="radio"
+            />
+             Platelets
+          </label>
+        </div>
+        <div
+          class="mb-3 mb-3"
+        >
+          <label
+            class="auth-label form-label"
+          >
+            Preferred Hospital / Location
+          </label>
+          <select
+            class="auth-input"
+            style="width: 100%;"
+          >
+            <option
+              value=""
+            >
+              Select a center
+            </option>
+          </select>
+        </div>
+        <div
+          class="auth-actions"
+        >
+          <button
+            class="auth-btn-primary w-100 btn btn-secondary disabled"
+            disabled=""
+            type="submit"
+          >
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;

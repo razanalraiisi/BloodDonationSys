@@ -1,0 +1,296 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RequestBlood Form matches RequestBlood UI snapshot 1`] = `
+<div>
+  <div
+    class="auth-page"
+    style="position: relative;"
+  >
+    <button
+      style="position: absolute; top: 20px; left: 20px; background: none; color: rgb(179, 38, 30); font-weight: 600; display: flex; align-items: center; font-size: 16px; cursor: pointer; z-index: 10;"
+    >
+      <svg
+        fill="currentColor"
+        height="18"
+        stroke="currentColor"
+        stroke-width="0"
+        style="margin-right: 6px;"
+        viewBox="0 0 448 512"
+        width="18"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M257.5 445.1l-22.2 22.2c-9.4 9.4-24.6 9.4-33.9 0L7 273c-9.4-9.4-9.4-24.6 0-33.9L201.4 44.7c9.4-9.4 24.6-9.4 33.9 0l22.2 22.2c9.5 9.5 9.3 25-.4 34.3L136.6 216H424c13.3 0 24 10.7 24 24v32c0 13.3-10.7 24-24 24H136.6l120.5 114.8c9.8 9.3 10 24.8.4 34.3z"
+        />
+      </svg>
+      Back
+    </button>
+    <div
+      class="auth-card"
+    >
+      <h2
+        class="auth-title"
+      >
+        Request Blood Form
+      </h2>
+      <form>
+        <div
+          class="form-grid"
+        >
+          <div
+            class="mb-3 col-span-2 mb-3"
+          >
+            <label
+              class="auth-label d-block form-label"
+            >
+              Request Type
+            </label>
+            <label
+              class="me-3 form-label"
+            >
+              <input
+                checked=""
+                type="radio"
+              />
+               Self
+            </label>
+            <label
+              class="form-label"
+            >
+              <input
+                type="radio"
+              />
+               Someone Else
+            </label>
+          </div>
+          <div
+            class="mb-3 mb-3"
+          >
+            <label
+              class="form-label"
+            >
+              Email
+            </label>
+            <input
+              class="auth-input"
+              readonly=""
+              required=""
+              value="john@example.com"
+            />
+          </div>
+          <div
+            class="mb-3 mb-3"
+          >
+            <label
+              class="form-label"
+            >
+              Full Name
+            </label>
+            <input
+              class="auth-input"
+              readonly=""
+              required=""
+              value="John Doe"
+            />
+          </div>
+          <div
+            class="mb-3 mb-3"
+          >
+            <label
+              class="form-label"
+            >
+              Patient ID
+            </label>
+            <input
+              class="auth-input"
+              min="0"
+              type="number"
+              value=""
+            />
+          </div>
+          <div
+            class="mb-3 mb-3"
+          >
+            <label
+              class="form-label"
+            >
+              Hospital File Number
+            </label>
+            <input
+              class="auth-input"
+              min="0"
+              type="number"
+              value=""
+            />
+          </div>
+          <div
+            class="mb-3 mb-3"
+          >
+            <label
+              class="form-label"
+            >
+              Blood Type
+            </label>
+            <select
+              class="auth-input"
+              disabled=""
+              required=""
+            >
+              <option
+                value=""
+              >
+                Select
+              </option>
+              <option>
+                O+
+              </option>
+              <option>
+                O-
+              </option>
+              <option>
+                A+
+              </option>
+              <option>
+                A-
+              </option>
+              <option>
+                B+
+              </option>
+              <option>
+                B-
+              </option>
+              <option>
+                AB+
+              </option>
+              <option>
+                AB-
+              </option>
+            </select>
+          </div>
+          <div
+            class="mb-3 mb-3"
+          >
+            <label
+              class="form-label"
+            >
+              Hospital Name
+            </label>
+            <select
+              class="auth-input"
+              required=""
+            >
+              <option
+                value=""
+              >
+                Select Hospital
+              </option>
+            </select>
+          </div>
+          <div
+            class="mb-3 mb-3"
+          >
+            <label
+              class="form-label"
+            >
+              Date Required
+            </label>
+            <input
+              class="auth-input"
+              min="2025-12-07"
+              required=""
+              type="date"
+              value=""
+            />
+          </div>
+          <div
+            class="mb-3 mb-3"
+          >
+            <label
+              class="form-label"
+            >
+              Reason
+            </label>
+            <input
+              class="auth-input"
+              value=""
+            />
+          </div>
+          <div
+            class="mb-3 mb-3"
+          >
+            <label
+              class="form-label"
+            >
+              Blood Units
+            </label>
+            <input
+              class="auth-input"
+              min="0"
+              type="number"
+              value=""
+            />
+          </div>
+          <div
+            class="mb-3 col-span-2 mb-3"
+          >
+            <label
+              class="form-label"
+            >
+              Medical Report (optional)
+            </label>
+            <input
+              accept=".pdf,.jpg,.jpeg,.png"
+              class="auth-input"
+              type="file"
+            />
+          </div>
+          <div
+            class="mb-3 col-span-2 mb-3"
+          >
+            <label
+              class="form-label"
+            >
+              Urgency
+            </label>
+            <div>
+              <label
+                class="me-3"
+              >
+                <input
+                  checked=""
+                  type="radio"
+                />
+                 Normal
+              </label>
+              <label
+                class="me-3"
+              >
+                <input
+                  type="radio"
+                />
+                 Urgent
+              </label>
+              <label>
+                <input
+                  type="radio"
+                />
+                 Critical
+              </label>
+            </div>
+          </div>
+          <div
+            class="col-span-2"
+          >
+            <button
+              class="auth-btn-primary w-100 btn btn-secondary"
+              type="submit"
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;
