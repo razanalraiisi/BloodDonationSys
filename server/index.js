@@ -136,7 +136,7 @@ app.post("/updateProfile", async (req, res) => {
 });
 
 // -----------------------------
-// HEALTH NOTES: delete only (adding disabled)
+
 // -----------------------------
 
 // Debug route: check user existence by email
@@ -254,20 +254,47 @@ app.post("/request/create", upload.single("medicalReport"), async (req, res) => 
     if (!userEmail || !patientName || !bloodType || !hospital || !neededDate || !mode)
       return res.status(400).json({ message: "Missing required fields for request" });
 
+    // Reject past dates (accept today and future) — parse YYYY-MM-DD safely
+    try {
+      const parts = String(neededDate).split('-');
+      if (parts.length !== 3) {
+        return res.status(400).json({ message: "Invalid required date" });
+      }
+      const year = Number(parts[0]);
+      const month = Number(parts[1]);
+      const day = Number(parts[2]);
+      if (!year || !month || !day) {
+        return res.status(400).json({ message: "Invalid required date" });
+      }
+      const startOfReq = new Date(year, month - 1, day);
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      if (startOfReq < startOfToday) {
+        return res.status(400).json({ message: "Date must be today or in the future" });
+      }
+    } catch (_) {
+      return res.status(400).json({ message: "Invalid required date" });
+    }
+
     // ⭐ FIX: Ensure file path works on Windows & creates a valid URL
     let medicalReportPath = "";
     if (req.file) {
       medicalReportPath = req.file.path.replace(/\\/g, "/");
     }
 
+    // Coerce and guard non-negative numeric fields
+    const safeBloodUnits = Math.max(0, Number(bloodUnits || 0) || 0);
+    const safePatientId = typeof patientId !== 'undefined' ? String(Math.max(0, Number(patientId) || 0)) : '';
+    const safeHospitalFileNumber = typeof hospitalFileNumber !== 'undefined' ? String(Math.max(0, Number(hospitalFileNumber) || 0)) : '';
+
     const newRequest = new RequestModel({
       userEmail,
       patientName,
-      patientId,
-      hospitalFileNumber,
+      patientId: safePatientId,
+      hospitalFileNumber: safeHospitalFileNumber,
       relationship,
       bloodType,
-      bloodUnits: bloodUnits ? Number(bloodUnits) : 0,
+      bloodUnits: safeBloodUnits,
       reason,
       hospital,
       urgency,

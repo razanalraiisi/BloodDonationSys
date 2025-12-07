@@ -200,8 +200,18 @@ const RequestBlood = () => {
               <Label>Patient ID</Label>
               <input
                 className="auth-input"
+                type="number"
+                min={0}
                 value={patientId}
-                onChange={(e) => setPatientId(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const num = Number(val);
+                  if (Number.isNaN(num)) {
+                    setPatientId("");
+                  } else {
+                    setPatientId(String(Math.max(0, num)));
+                  }
+                }}
               />
             </FormGroup>
 
@@ -210,8 +220,18 @@ const RequestBlood = () => {
               <Label>Hospital File Number</Label>
               <input
                 className="auth-input"
+                type="number"
+                min={0}
                 value={hospitalFileNumber}
-                onChange={(e) => setHospitalFileNumber(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const num = Number(val);
+                  if (Number.isNaN(num)) {
+                    setHospitalFileNumber("");
+                  } else {
+                    setHospitalFileNumber(String(Math.max(0, num)));
+                  }
+                }}
               />
             </FormGroup>
 
@@ -274,6 +294,13 @@ const RequestBlood = () => {
                 type="date"
                 className="auth-input"
                 value={neededDate}
+                min={(() => {
+                  const d = new Date();
+                  const y = d.getFullYear();
+                  const m = String(d.getMonth() + 1).padStart(2, '0');
+                  const day = String(d.getDate()).padStart(2, '0');
+                  return `${y}-${m}-${day}`; // local date string, avoids timezone shift
+                })()}
                 onChange={(e) => setNeededDate(e.target.value)}
                 required
               />
@@ -286,6 +313,26 @@ const RequestBlood = () => {
                 className="auth-input"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
+              />
+            </FormGroup>
+
+            {/* Blood Units */}
+            <FormGroup className="mb-3">
+              <Label>Blood Units</Label>
+              <input
+                className="auth-input"
+                type="number"
+                min={0}
+                value={bloodUnits}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const num = Number(val);
+                  if (Number.isNaN(num)) {
+                    setBloodUnits("");
+                  } else {
+                    setBloodUnits(String(Math.max(0, num)));
+                  }
+                }}
               />
             </FormGroup>
 
