@@ -7,6 +7,7 @@ import BloodDonate from "../assets/BloodDonate.png";
 import BloodBag from "../assets/BloodBag.png";
 import HeartPulse from "../assets/HeartPulse.png";
 import bloodDonorCartoon from "../assets/bloodDonorCartoon.jpg";
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const Home = () => {
   const [dashboard, setDashboard] = useState({ activeDonors: 0, livesSaved: 0 });
@@ -39,6 +40,14 @@ const Home = () => {
           <h3 style={{ color: '#B3261E' }}>Blood donation is a simple act of kindness that can save countless lives.</h3><br />
           <Button style={{ backgroundColor: '#f7c7c7', color: '#B3261E', borderRadius: '15px' }} onClick={() => navigate('/request')}>Request Blood</Button> {" "}
           <Button style={{ backgroundColor: '#f7c7c7', color: '#B3261E', borderRadius: '15px' }} onClick={() => navigate('/compatibleRequests')}>Donate Blood</Button>
+          <div className="d-flex justify-content-center mt-3">
+            <DotLottieReact
+              src="https://lottie.host/5d74344e-134a-4c20-952b-0cd04cd63c5e/v58erKsKXm.lottie"
+              loop
+              autoplay
+              style={{ width: 300, height: 300 }}
+            />
+          </div>
         </Col>
       </Row>
 

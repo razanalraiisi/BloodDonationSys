@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaHome } from "react-icons/fa";
 import axios from "axios";
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const CompatibleRequests = () => {
   const user = useSelector(state => state.users.user);
@@ -90,6 +91,14 @@ const CompatibleRequests = () => {
         <FaArrowLeft />
       </Button>
       
+      <div className="d-flex justify-content-center" style={{ marginBottom: 10 }}>
+        <DotLottieReact
+          src="https://lottie.host/2a844977-5b23-43a9-bd79-e3135f856d7e/usNkEVFNRt.lottie"
+          loop
+          autoplay
+          style={{ width: 140, height: 140 }}
+        />
+      </div>
       <h2 style={{ color: "#B3261E", marginBottom: 25, textAlign: "center" }}>
         Compatible Blood Requests
       </h2>
