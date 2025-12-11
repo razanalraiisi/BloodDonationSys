@@ -20,7 +20,7 @@ export const UserRegisterSchemaValidation = yup.object().shape({
         if (!value) return true;
         try {
           const res = await fetch(
-            "http://localhost:5000/users/check-email/" + value
+            "https://blooddonationsys.onrender.com/users/check-email/" + value
           );
           const data = await res.json();
           return data.exists === false;
