@@ -37,7 +37,7 @@ const RequestBlood = () => {
   const [error, setError] = useState("");
 
 
-  // ⭐ Load user profile ONCE — prevents autofill being overwritten
+  //  Load user profile ONCE — prevents autofill being overwritten
   useEffect(() => {
     const savedEmail = localStorage.getItem("userEmail");
     if (savedEmail) {
@@ -46,11 +46,11 @@ const RequestBlood = () => {
   }, [dispatch]);
 
 
-  // ⭐ Load hospital centers
+  //  Load hospital centers
   useEffect(() => {
     const fetchHospitals = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/donation-centers");
+        const res = await axios.get("https://blooddonationsys.onrender.com/api/donation-centers");
         setHospitalList(res.data);
       } catch (err) {
         console.error("Error fetching donation centers:", err);
@@ -60,7 +60,7 @@ const RequestBlood = () => {
   }, []);
 
 
-  // ⭐ Autofill when mode = self
+  //  Autofill when mode = self
   useEffect(() => {
     if (mode === "self" && user) {
       setFullName(user.fullName || "");
@@ -95,7 +95,7 @@ const RequestBlood = () => {
         formData.append("medicalReport", medicalReport);
       }
 
-      await axios.post("http://localhost:5000/request/create", formData, {
+      await axios.post("https://blooddonationsys.onrender.com/request/create", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
