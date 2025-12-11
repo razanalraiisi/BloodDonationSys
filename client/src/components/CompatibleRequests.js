@@ -26,7 +26,7 @@ const CompatibleRequests = () => {
   const userBlood = (user?.bloodType || "").trim().toUpperCase();
 
   useEffect(() => {
-    axios.get("http://localhost:5000/request/all")
+    axios.get("https://blooddonationsys.onrender.com/request/all")
       .then(res => {
         const allRequests = res.data;
 
