@@ -16,7 +16,7 @@ const DonationCenter = () => {
 
   useEffect(() => {
     if (user?.email && user?.bloodType) {
-      axios.post("http://localhost:5000/request/compatible", { email: user.email, bloodType: user.bloodType })
+      axios.post("https://blooddonationsys.onrender.com/request/compatible", { email: user.email, bloodType: user.bloodType })
         .then(res => {
           const requests = res.data;
           
