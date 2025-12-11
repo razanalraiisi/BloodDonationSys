@@ -1,11 +1,24 @@
+// Mock UserSlice action and react-redux dispatch to simulate invalid credentials
+jest.mock('../../features/UserSlice', () => ({
+  getUser: jest.fn(() => ({ type: 'MOCK/GET_USER' })),
+}));
+
+jest.mock('react-redux', () => {
+  const actual = jest.requireActual('react-redux');
+  return {
+    ...actual,
+    useDispatch: () => (/* action */) => ({
+      unwrap: () => Promise.reject(new Error('Email or password is incorrect.')),
+    }),
+  };
+});
+// No react-redux mock; rely on real store dispatch
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import configureStore from 'redux-mock-store';
 import Login from '../Login';
-// Mock axios using CJS build to avoid ESM issues in Jest
-jest.mock('axios', () => require('axios/dist/node/axios.cjs'));
 
 const mockStore = configureStore([]);
 const store = mockStore({
@@ -76,8 +89,27 @@ describe('Login Component Tests', () => {
     expect(await screen.findByText(/password is required\./i)).toBeInTheDocument();
   });
 
-  test('matches the UI snapshot', () => {
+  test('matches Login UI snapshot', () => {
     const { container } = renderLogin();
     expect(container).toMatchSnapshot();
+  });
+
+
+  test('shows error alert on invalid credentials', async () => {
+    const userSlice = require('../../features/UserSlice');
+    // ensure our mock is used
+    expect(typeof userSlice.getUser).toBe('function');
+    renderLogin();
+
+    const emailInput = screen.getByPlaceholderText(/example@mail.com/i);
+    const passwordInput = screen.getByPlaceholderText(/enter your password/i);
+    fireEvent.change(emailInput, { target: { value: 'wrong@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'badpass' } });
+
+    const submitButton = screen.getByRole('button', { name: /sign in/i });
+    fireEvent.click(submitButton);
+
+    expect(await screen.findByText(/please check the following/i)).toBeInTheDocument();
+    expect(await screen.findByText(/email or password is incorrect/i)).toBeInTheDocument();
   });
 });
