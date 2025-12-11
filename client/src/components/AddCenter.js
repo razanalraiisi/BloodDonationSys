@@ -76,7 +76,7 @@ const AddCenter = () => {
         lng: Number(centerForm.lng)
       };
 
-      const res = await axios.post("http://localhost:5000/center/add", payload);
+      const res = await axios.post("https://blooddonationsys.onrender.com/center/add", payload);
 
       // Show success message only if backend saved the center
       if (res.status === 200 && res.data.message === "Center added") {
