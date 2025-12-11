@@ -59,7 +59,7 @@ const EligibilityTerms = () => {
     let mounted = true;
     const fetchTerms = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/eligibility-terms');
+        const res = await axios.get('https://blooddonationsys.onrender.com/api/eligibility-terms');
         const items = Array.isArray(res.data) ? res.data : [];
         const activeSorted = items.filter(t=>t.active).sort((a,b)=> (a.order||0) - (b.order||0));
         if (mounted) setTerms(activeSorted);
