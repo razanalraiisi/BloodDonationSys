@@ -41,7 +41,7 @@ const AdminDashboard = () => {
 
   const loadDashboardStats = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/admin/dashboard-stats");
+      const res = await axios.get("https://blooddonationsys.onrender.com/api/admin/dashboard-stats");
       setStats(res.data);
     } catch (err) {
       console.error(err);
@@ -60,7 +60,7 @@ const AdminDashboard = () => {
 
   const loadRequests = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/request/all");
+      const res = await axios.get("https://blooddonationsys.onrender.com/request/all");
       setRequests(res.data);
     } catch (err) {
       console.log(err);
@@ -88,7 +88,7 @@ const AdminDashboard = () => {
 
   const loadDonations = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/donation/all");
+      const res = await axios.get("https://blooddonationsys.onrender.com/donation/all");
       setDonations(res.data);
     } catch (err) {
       console.log(err);
@@ -119,7 +119,7 @@ const AdminDashboard = () => {
 
   const loadTerms = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/eligibility-terms');
+      const res = await axios.get('https://blooddonationsys.onrender.com/api/eligibility-terms');
       const items = Array.isArray(res.data) ? res.data : [];
       setEligibilityTerms(items);
     } catch { setEligibilityTerms([]); }
@@ -136,7 +136,7 @@ const AdminDashboard = () => {
       return;
     }
     try {
-      await axios.post('http://localhost:5000/api/eligibility-terms', termForm);
+      await axios.post('https://blooddonationsys.onrender.com/api/eligibility-terms', termForm);
       setTermMsg('Term created');
       setTermForm({ title: '', description: '', category: 'General', order: maxOrder, active: true });
       loadTerms();
@@ -150,7 +150,7 @@ const AdminDashboard = () => {
       return;
     }
     try {
-      await axios.put(`http://localhost:5000/api/eligibility-terms/${id}`, patch);
+      await axios.put(`https://blooddonationsys.onrender.com/api/eligibility-terms/${id}`, patch);
       setTermMsg('Term updated successfully');
       setTimeout(() => setTermMsg(''), 2000);
       loadTerms();
@@ -158,7 +158,7 @@ const AdminDashboard = () => {
   };
 
   const deleteTerm = async (id) => {
-    try { await axios.delete(`http://localhost:5000/api/eligibility-terms/${id}`); loadTerms(); }
+    try { await axios.delete(`https://blooddonationsys.onrender.com/api/eligibility-terms/${id}`); loadTerms(); }
     catch { setTermMsg('Delete failed'); }
   };
 
@@ -309,7 +309,7 @@ const AdminDashboard = () => {
                           <td>
                             {r.medicalReportPath ? (
                               <a
-                                href={`http://localhost:5000/${r.medicalReportPath}`}
+                                href={`https://blooddonationsys.onrender.com/${r.medicalReportPath}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{
