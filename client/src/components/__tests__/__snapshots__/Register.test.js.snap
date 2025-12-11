@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Register Component Tests matches the UI snapshot 1`] = `
+exports[`Register Component Tests matches Register UI snapshot 1`] = `
 <div>
   <div
     class="auth-page"
@@ -140,7 +140,7 @@ exports[`Register Component Tests matches the UI snapshot 1`] = `
           </label>
           <input
             class="auth-input"
-            max="2008-12-07"
+            max="2008-12-11"
             name="dob"
             type="date"
             value=""

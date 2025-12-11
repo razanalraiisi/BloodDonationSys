@@ -5,10 +5,8 @@ import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import configureStore from 'redux-mock-store';
 import RequestBlood from '../RequestBlood';
-
-// Use axios and spy on methods
-jest.mock('axios', () => require('axios/dist/node/axios.cjs'));
-const axios = require('axios');
+import axios from 'axios';
+// axios is mocked globally in setupTests; use the mocked instance here
 
 const mockStore = configureStore([]);
 const baseState = {
@@ -25,6 +23,28 @@ const renderRequest = (state = baseState) => {
     </Provider>
   );
 };
+
+// Pin "today" for snapshots so dynamic min date is stable
+beforeAll(() => {
+  // Pin date to today's date to match UI (min date updates daily)
+  jest.useFakeTimers({ now: new Date('2025-12-11T00:00:00Z') });
+});
+afterAll(() => {
+  jest.useRealTimers();
+});
+
+// Provide axios responses used by RequestBlood effects
+beforeEach(() => {
+  axios.get.mockImplementation((url) => {
+    if (url.includes('/api/donation-centers')) {
+      return Promise.resolve({ data: [{ _id: '1', name: 'Royal Hospital' }] });
+    }
+    return Promise.resolve({ data: {} });
+  });
+});
+afterEach(() => {
+  jest.clearAllMocks();
+});
 
 describe('RequestBlood Form', () => {
   beforeEach(() => {
@@ -53,6 +73,11 @@ describe('RequestBlood Form', () => {
 
     // Hospital select should load options
     await waitFor(() => expect(container.querySelectorAll('select.auth-input')[1].querySelectorAll('option').length).toBeGreaterThan(1));
+  });
+
+  test('matches RequestBlood UI snapshot', () => {
+    const { container } = renderRequest();
+    expect(container).toMatchSnapshot();
   });
 
   test('submits with valid inputs and shows success message', async () => {
@@ -103,8 +128,14 @@ describe('RequestBlood Form', () => {
     await waitFor(() => expect(screen.getByText(/request submitted successfully/i)).toBeInTheDocument());
   });
 
-  test('matches RequestBlood UI snapshot', () => {
+  test('renders expected static fields without snapshot', () => {
+    axios.get.mockResolvedValueOnce({ data: [] });
     const { container } = renderRequest();
-    expect(container).toMatchSnapshot();
+    expect(screen.getByText(/date required/i)).toBeInTheDocument();
+    const dateInput = container.querySelector('input[type="date"]');
+    expect(dateInput).toBeInTheDocument();
+    const selects = container.querySelectorAll('select.auth-input');
+    expect(selects.length).toBeGreaterThan(0);
+    // Skip asserting dynamic min date to avoid day-to-day drift
   });
 });

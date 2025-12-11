@@ -196,7 +196,7 @@ exports[`RequestBlood Form matches RequestBlood UI snapshot 1`] = `
             </label>
             <input
               class="auth-input"
-              min="2025-12-07"
+              min="2025-12-11"
               required=""
               type="date"
               value=""

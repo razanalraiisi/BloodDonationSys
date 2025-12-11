@@ -6,8 +6,48 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import configureStore from 'redux-mock-store';
 import DonateBlood from '../DonateBlood';
 
-// Mock axios CJS to avoid ESM issues
-jest.mock('axios', () => require('axios/dist/node/axios.cjs'));
+import axios from 'axios';
+
+// Mock axios to avoid ESM import issues and control async effects
+jest.mock('axios', () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+}));
+
+// Silence router future flag warnings in test output
+beforeAll(() => {
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+});
+afterAll(() => {
+  // @ts-ignore
+  console.warn.mockRestore && console.warn.mockRestore();
+});
+
+// Provide default axios responses used by DonateBlood effects
+beforeEach(() => {
+  axios.post.mockImplementation((url) => {
+    if (url.includes('/donation/mine')) {
+      return Promise.resolve({ data: [] }); // no previous donations => eligible
+    }
+    if (url.includes('/donation/create')) {
+      return Promise.resolve({ data: { ok: true } });
+    }
+    if (url.includes('/request/updateStatus')) {
+      return Promise.resolve({ data: { ok: true } });
+    }
+    return Promise.resolve({ data: {} });
+  });
+  axios.get.mockImplementation((url) => {
+    if (url.includes('/api/donation-centers')) {
+      return Promise.resolve({ data: [{ _id: '1', name: 'Royal Hospital' }] });
+    }
+    return Promise.resolve({ data: {} });
+  });
+});
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
 
 const mockStore = configureStore([]);
 

@@ -4,8 +4,6 @@ import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import configureStore from 'redux-mock-store';
 import Register from '../Register';
-// Mock axios using CJS build to avoid ESM issues in Jest
-jest.mock('axios', () => require('axios/dist/node/axios.cjs'));
 
 const mockStore = configureStore([]);
 const store = mockStore({
@@ -14,6 +12,12 @@ const store = mockStore({
 
 beforeAll(() => {
   jest.spyOn(console, 'warn').mockImplementation(() => {});
+    // Pin system time to today's date to match UI (max DOB updates daily)
+    jest.useFakeTimers({ now: new Date('2025-12-11T00:00:00Z') });
+});
+
+afterAll(() => {
+  jest.useRealTimers();
 });
 
 describe('Register Component Tests', () => {
@@ -86,7 +90,16 @@ describe('Register Component Tests', () => {
     expect(await screen.findByText(/gender is required/i)).toBeInTheDocument();
   });
 
-  test('matches the UI snapshot', () => {
+  test('renders expected static fields without snapshot', () => {
+    const { container } = renderRegister();
+    expect(screen.getByText(/date of birth/i)).toBeInTheDocument();
+    const dobInput = container.querySelector('input[name="dob"]');
+    expect(dobInput).toHaveAttribute('type', 'date');
+    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
+    // Do not assert dynamic max date here; covered by component logic
+  });
+
+  test('matches Register UI snapshot', () => {
     const { container } = renderRegister();
     expect(container).toMatchSnapshot();
   });
