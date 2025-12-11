@@ -15,7 +15,7 @@ const Home = () => {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const { data } = await axios.get("http://localhost:5000/api/dashboard");
+        const { data } = await axios.get("https://blooddonationsys.onrender.com/api/dashboard");
         setDashboard(data);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
