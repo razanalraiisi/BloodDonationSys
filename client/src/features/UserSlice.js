@@ -6,7 +6,7 @@ export const getUser = createAsyncThunk(
   "users/getUser",
   async (udata, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:5000/login", udata);
+      const response = await axios.post("https://blooddonationsys.onrender.com/login", udata);
       return response.data;
     } catch (error) {
       if (error.response && error.response.data && error.response.data.message) {
@@ -22,7 +22,7 @@ export const addUser = createAsyncThunk(
   "users/addUser",
   async (udata, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:5000/register", udata);
+      const response = await axios.post("https://blooddonationsys.onrender.com/register", udata);
   
       return { ok: true };
     } catch (error) {
@@ -40,7 +40,7 @@ export const getProfile = createAsyncThunk(
   "users/getProfile",
   async (email, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:5000/profile", { email });
+      const response = await axios.post("https://blooddonationsys.onrender.com/profile", { email });
       return response.data; // server returns user object
     } catch (error) {
       if (error.response && error.response.data && error.response.data.message) {
@@ -56,7 +56,7 @@ export const updateProfile = createAsyncThunk(
   "users/updateProfile",
   async (payload, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:5000/updateProfile", payload);
+      const response = await axios.post("https://blooddonationsys.onrender.com/updateProfile", payload);
       return response.data; // { message: "Profile updated" }
     } catch (error) {
       if (error.response && error.response.data && error.response.data.message) {
