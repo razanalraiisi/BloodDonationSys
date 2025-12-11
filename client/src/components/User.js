@@ -62,12 +62,12 @@ const User = () => {
     const [saveMessage, setSaveMessage] = useState('');
 
     const fetchDonations = (email) => {
-        axios.post('http://localhost:5000/donation/mine', { email })
+        axios.post('https://blooddonationsys.onrender.com/donation/mine', { email })
             .then(res => setDonations(res.data || []))
             .catch(() => setDonations([]));
     };
     const fetchRequests = (email) => {
-        axios.post('http://localhost:5000/request/mine', { email })
+        axios.post('https://blooddonationsys.onrender.com/request/mine', { email })
             .then(res => setRequests(Array.isArray(res.data) ? res.data : []))
             .catch(() => setRequests([]));
     };
@@ -537,11 +537,11 @@ const User = () => {
                                                 setConfirmMessage('Are you sure you want to delete this note?');
                                                 setConfirmAction(()=> async ()=>{
                                                     try {
-                                                        await axios.delete(`http://localhost:5000/profile/notes/${n._id || ''}`, { data: { email: user.email, text: n.text } });
+                                                        await axios.delete(`https://blooddonationsys.onrender.com/profile/notes/${n._id || ''}`, { data: { email: user.email, text: n.text } });
                                                         try { await dispatch(getProfile(user.email)); } catch {}
                                                     } catch (e) {
                                                         try {
-                                                            await axios.delete(`http://localhost:5000/profile/notes`, { data: { email: user.email, index: idx } });
+                                                            await axios.delete(`https://blooddonationsys.onrender.com/profile/notes`, { data: { email: user.email, index: idx } });
                                                             try { await dispatch(getProfile(user.email)); } catch {}
                                                         } catch {}
                                                     }
@@ -566,7 +566,7 @@ const User = () => {
                             <div>
                                 {items.map((r) => {
                                     const filename = (r.medicalReportPath || '').split('/').pop();
-                                    const url = filename ? `http://localhost:5000/uploads/${filename}` : '';
+                                    const url = filename ? `https://blooddonationsys.onrender.com/uploads/${filename}` : '';
                                     return (
                                         <div key={r._id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', alignItems: 'center', gap: 8, border: '1px solid #E5E7EB', borderRadius: 10, padding: 10, marginBottom: 10, background: '#fff' }}>
                                             <span className='auth-label' style={{ overflowWrap: 'anywhere' }}>{filename}</span>
@@ -580,7 +580,7 @@ const User = () => {
                                                     setConfirmMessage('Are you sure you want to delete this uploaded file?');
                                                     setConfirmAction(()=> async ()=>{
                                                         try {
-                                                            await axios.delete(`http://localhost:5000/request/${r._id}/attachment`, { data: { email: user.email } });
+                                                            await axios.delete(`https://blooddonationsys.onrender.com/request/${r._id}/attachment`, { data: { email: user.email } });
                                                             try { fetchRequests(user.email); } catch {}
                                                         } catch {}
                                                     });
