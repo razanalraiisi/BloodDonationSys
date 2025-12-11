@@ -6,7 +6,7 @@ import axios from "axios";
   "users/getUser",
   async (udata, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:5000/login", udata);
+      const response = await axios.post("https://blooddonationsys.onrender.com/login", udata);
       return response.data;
     } catch (error) {
       if (error.response && error.response.data && error.response.data.message) {
@@ -22,7 +22,7 @@ export const savePost = createAsyncThunk(
   "posts/savePost",
   async (pdata, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:5000/savePost", pdata);
+      const response = await axios.post("https://blooddonationsys.onrender.com/savePost", pdata);
       return response.data.message;
     } catch (error) {
         console.log(error);
