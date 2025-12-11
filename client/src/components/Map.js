@@ -17,7 +17,7 @@ const Map = ({ onSelectHospital }) => {
   useEffect(() => {
     const fetchHospitals = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/donation-centers");
+        const res = await axios.get("https://blooddonationsys.onrender.com/api/donation-centers");
         setHospitals(res.data);
       } catch (error) {
         console.error("Error fetching hospitals:", error);
