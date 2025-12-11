@@ -84,7 +84,7 @@ const DonateBlood = () => {
     useEffect(() => {
         const email = user?.email || localStorage.getItem('userEmail');
         if (!email) return;
-        axios.post('http://localhost:5000/donation/mine', { email })
+        axios.post('https://blooddonationsys.onrender.com/donation/mine', { email })
             .then(res => {
                 const list = Array.isArray(res.data) ? res.data : [];
                 if (list.length === 0) {
@@ -106,7 +106,7 @@ const DonateBlood = () => {
 
     // Load donation centers from server for hospital dropdown
     useEffect(() => {
-        axios.get('http://localhost:5000/api/donation-centers')
+        axios.get('https://blooddonationsys.onrender.com/api/donation-centers')
             .then(res => {
                 const list = Array.isArray(res.data) ? res.data : [];
                 setCenters(list);
@@ -172,7 +172,7 @@ const DonateBlood = () => {
             traveledRecent,
         };
 
-            axios.post('http://localhost:5000/donation/create', payload)
+            axios.post('https://blooddonationsys.onrender.com/donation/create', payload)
                 .then(() => {
                     // Initially indicate donation success
                     setDonationSuccess('Donation submitted successfully.');
@@ -180,7 +180,7 @@ const DonateBlood = () => {
                     // If donation corresponds to a specific request, mark it Completed,
                     // then update UI and redirect the user back to Donation Center.
                     if (linkedRequestId) {
-                        axios.post('http://localhost:5000/request/updateStatus', { id: linkedRequestId, status: 'Completed' })
+                        axios.post('https://blooddonationsys.onrender.com/request/updateStatus', { id: linkedRequestId, status: 'Completed' })
                             .then(() => {
                                 setDonationSuccess('Donation submitted successfully. The request has been marked completed. Redirecting to Donation Center...');
                                 // Redirect after a short delay so user can read the message
